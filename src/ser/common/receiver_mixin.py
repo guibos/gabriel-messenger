@@ -15,11 +15,13 @@ import appdirs
 import databases
 import sqlalchemy
 from aiohttp import ClientResponse
+from bs4 import BeautifulSoup
 from orm.models import ModelMetaclass
 from sqlalchemy import MetaData
 
 from src.ser.common.abstract.attribute import AbstractAttribute
 from src.ser.common.enums.environment import Environment
+from src.ser.common.enums.format_data import FormatData
 from src.ser.common.enums.state import State
 from src.ser.common.itf.custom_config import CustomConfig
 from src.ser.common.queue_manager import QueueManager
@@ -36,6 +38,7 @@ class ReceiverMixin(ServiceMixin):
     MODEL_IDENTIFIER: ModelMetaclass = AbstractAttribute()
     MODELS: List[ModelMetaclass] = AbstractAttribute()
     MODELS_METADATA: MetaData = AbstractAttribute()
+    _TITLE_HTML_TAG = 'h1'
 
     # pylint: disable=too-many-arguments
     def __init__(self, logger: Logger, wait_time: int, state_change_queue: Queue, queue_manager: QueueManager,
@@ -223,6 +226,14 @@ class ReceiverMixin(ServiceMixin):
     async def _put_in_queue(self, transaction_data: TransactionData):
         for publication in transaction_data.publications:
             await self._queue_manager.put(publication=publication)
-            self._logger.info("New publication: %s", publication.title)
+            self._logger.info("New publication: %s", await self._get_format_data(data=publication.title, format_data=FormatData.PLAIN))
         await self.MODEL_IDENTIFIER.objects.create(id=transaction_data.transaction_id)
         self._cache.append(transaction_data.transaction_id)
+
+    @staticmethod
+    def _add_html_tag(string: str, tag: str):
+        soup = BeautifulSoup(features="html5lib")
+        new_tag = soup.new_tag(tag)
+        new_tag.string = string
+
+        return str(new_tag)

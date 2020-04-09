@@ -10,10 +10,12 @@ from typing import List, Optional
 from bs4 import BeautifulSoup, element
 
 from src.ser.common.data.weiss_schwarz_barcelona_data import WeissSchwarzBarcelonaData
+from src.ser.common.enums.format_data import FormatData
 from src.ser.common.itf.custom_config import CustomConfig
 from src.ser.common.itf.publication import Publication
 from src.ser.common.queue_manager import QueueManager
 from src.ser.common.receiver_mixin import ReceiverMixin
+from src.ser.common.rich_text import RichText
 from src.ser.common.value_object.transacation_data import TransactionData
 from src.ser.ws_news.models.identifier import Identifier, METADATA
 
@@ -78,7 +80,9 @@ class WSNews(ReceiverMixin, WeissSchwarzBarcelonaData):
         if url in self._cache:
             return
 
-        title = new.find(class_='title').text.strip()
+        title_str = new.find(class_='title').text.strip()
+        title_rich = RichText(data=self._add_html_tag(string=str(title_str), tag=self._TITLE_HTML_TAG),
+                              format_data=FormatData.HTML)
         description = None
         if self._NETLOC == parsed_url.netloc:
             headers = await self._get_site_head(url=url)
@@ -86,25 +90,25 @@ class WSNews(ReceiverMixin, WeissSchwarzBarcelonaData):
                 beautiful_soap = BeautifulSoup(await self._get_site_content(url=url), 'html5lib')
                 data = beautiful_soap.find(class_='entry-content')
                 description = await self._get_description(data=data)
-                images = await self._get_images(data=data, title=title)
+                images = await self._get_images(data=data, title=title_str)
 
             else:
                 file = await self._get_file_value_object(url=url,
-                                                         pretty_name=title,
+                                                         pretty_name=title_str,
                                                          filename_unique=self._FILENAME_UNIQUE,
                                                          public_url=self._PUBLIC_URL)
                 files.append(file)
 
         else:
             file = await self._get_file_value_object(url=new.find('img').attrs['src'].split('?')[0],
-                                                     pretty_name=title,
+                                                     pretty_name=title_str,
                                                      filename_unique=self._FILENAME_UNIQUE,
                                                      public_url=self._PUBLIC_URL)
             images.append(file)
 
         return Publication(
             publication_id=url,
-            title=title,
+            title=title_rich,
             description=description,
             url=url,
             files=files,
@@ -135,10 +139,9 @@ class WSNews(ReceiverMixin, WeissSchwarzBarcelonaData):
             images.append(image)
         return images
 
-    async def _get_description(self, data: element) -> element:
-        data = await self._remove_non_text_tags(data=data)
-        description = await self._clean_text(data.text)
-        return description
+    async def _get_description(self, data: element) -> RichText:
+        data = RichText(data=str(await self._remove_non_text_tags(data=data)), format_data=FormatData.HTML)
+        return data
 
     async def _remove_non_text_tags(self, data: element) -> element:
         for script in data.find_all('script'):

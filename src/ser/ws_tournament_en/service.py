@@ -6,9 +6,11 @@ from asyncio import Queue
 from bs4 import BeautifulSoup
 
 from src.ser.common.data.weiss_schwarz_barcelona_data import WeissSchwarzBarcelonaData
+from src.ser.common.enums.format_data import FormatData
 from src.ser.common.itf.custom_config import CustomConfig
 from src.ser.common.queue_manager import QueueManager
 from src.ser.common.receiver_images_mixin import ReceiverImagesMixin
+from src.ser.common.rich_text import RichText
 from src.ser.common.value_object.transacation_data import TransactionData
 from src.ser.ws_tournament_en.models.identifier import Identifier, METADATA
 
@@ -47,9 +49,11 @@ class WSTournamentEn(ReceiverImagesMixin, WeissSchwarzBarcelonaData):
 
         for month in months:
             cards = month.findAll('img')
-            title = month.find('h4').text.strip()
+            title_str = self._add_html_tag(month.find('h4').text.strip(), tag=self._TITLE_HTML_TAG)
+            title = RichText(data=title_str, format_data=FormatData.HTML)
+
             for card in cards:
-                publication = await self._create_publication_from_img(img=card, title=title)
+                publication = await self._create_publication_from_img(img=card, rich_title=title)
                 if publication:
                     transaction_data = TransactionData(transaction_id=publication.publication_id,
                                                        publications=[publication])

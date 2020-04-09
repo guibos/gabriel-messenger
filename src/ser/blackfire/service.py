@@ -14,8 +14,10 @@ from src.ser.blackfire.data.config import Config
 from src.ser.blackfire.data.custom_fields import CustomFields
 from src.ser.blackfire.models.identifier import Identifier, METADATA
 from src.ser.common.data.weiss_schwarz_barcelona_data import WeissSchwarzBarcelonaData
+from src.ser.common.enums.format_data import FormatData
 from src.ser.common.queue_manager import QueueManager
 from src.ser.common.receiver_mixin import ReceiverMixin
+from src.ser.common.rich_text import RichText
 from src.ser.common.value_object.custom_field import CustomField
 from src.ser.common.value_object.transacation_data import TransactionData
 
@@ -33,6 +35,7 @@ class BlackfireService(ReceiverMixin, WeissSchwarzBarcelonaData):
     _PRODUCT_URL = 'https://www.blackfire.eu/product.php?id={}'
     _BLACKFIRE_BASE_URL = 'https://www.blackfire.eu/{}'
     _PUBLIC_URL = True
+    _FORMAT_DATA = FormatData.HTML
 
     def __init__(self, *, files_directory: str, instance_name: str, queue_manager: QueueManager, search_parameters: str,
                  download_files: bool, wait_time: int, logging_level: str, state_change_queue: Queue, colour: int):
@@ -62,7 +65,7 @@ class BlackfireService(ReceiverMixin, WeissSchwarzBarcelonaData):
         for product_id in products_ids:
             publications.append(await self._get_product(product_id=product_id))
 
-        publications.sort(key=lambda product_item: product_item.title)
+        publications.sort(key=lambda product_item: product_item.title.to_format(format_data=FormatData.PLAIN))
         self._logger.debug("Loaded all products")
 
         for publication in publications:
@@ -82,20 +85,22 @@ class BlackfireService(ReceiverMixin, WeissSchwarzBarcelonaData):
         product_url = self._PRODUCT_URL.format(product_id)
         html = await self._get_site_content(url=product_url)
         beautiful_soup = BeautifulSoup(html, 'html.parser')
-        product_name = beautiful_soup.find('h1').text
-        product_description = beautiful_soup.find(id='tab-description').text.strip()
+        product_name = beautiful_soup.find('h1')
+        product_name_text = product_name.text
+        product_name_rich = str(product_name)
+        product_description_rich = str(beautiful_soup.find(id='tab-description'))
         product_image_url = self._BLACKFIRE_BASE_URL.format(beautiful_soup.find(id='image').attrs['src'])
         file = await self._get_file_value_object(url=product_image_url,
                                                  public_url=self._PUBLIC_URL,
-                                                 pretty_name=product_name)
+                                                 pretty_name=product_name_text)
         beautiful_soup_description = beautiful_soup.find(class_="description").text.split('\n')
         product_custom_fields_value_object = CustomFields(
             release_date=self._get_release_date(beautiful_soup_description=beautiful_soup_description),
             dead_line=self._get_dead_line(beautiful_soup_description=beautiful_soup_description),
         )
         product_value_object = BlackfirePublication(publication_id=product_id,
-                                                    title=product_name,
-                                                    description=product_description,
+                                                    title=RichText(data=product_name_rich, format_data=self._FORMAT_DATA),
+                                                    description=RichText(data=product_description_rich, format_data=self._FORMAT_DATA),
                                                     url=product_url,
                                                     timestamp=datetime.utcnow(),
                                                     color=self._colour,

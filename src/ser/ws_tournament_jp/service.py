@@ -6,9 +6,11 @@ from asyncio import Queue
 from bs4 import BeautifulSoup
 
 from src.ser.common.data.weiss_schwarz_barcelona_data import WeissSchwarzBarcelonaData
+from src.ser.common.enums.format_data import FormatData
 from src.ser.common.itf.custom_config import CustomConfig
 from src.ser.common.queue_manager import QueueManager
 from src.ser.common.receiver_images_mixin import ReceiverImagesMixin
+from src.ser.common.rich_text import RichText
 from src.ser.common.value_object.transacation_data import TransactionData
 from src.ser.ws_tournament_jp.models.identifier import Identifier, METADATA
 
@@ -32,6 +34,7 @@ class WSTournamentJp(ReceiverImagesMixin, WeissSchwarzBarcelonaData):
         self._instance_name = instance_name
         logger = logging.getLogger(self._instance_name)
         logger.setLevel(logging_level)
+        self._title = RichText(data=self._add_html_tag(self._TITLE, tag=self._TITLE_HTML_TAG), format_data=FormatData.HTML)
         super().__init__(download_files=download_files,
                          files_directory=files_directory,
                          colour=colour,
@@ -58,7 +61,7 @@ class WSTournamentJp(ReceiverImagesMixin, WeissSchwarzBarcelonaData):
 
             publications = []
             for image in images:
-                publications.append(await self._create_publication_from_img(img=image, url=url, check_cache=False))
+                publications.append(await self._create_publication_from_img(img=image, url=url, check_cache=False, rich_title= self._title))
             transaction_data = TransactionData(transaction_id=ws_id, publications=publications)
             await self._put_in_queue(transaction_data=transaction_data)
 

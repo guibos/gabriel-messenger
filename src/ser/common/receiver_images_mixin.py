@@ -12,6 +12,7 @@ from src.ser.common.abstract.attribute import AbstractAttribute
 from src.ser.common.itf.publication import Publication
 from src.ser.common.queue_manager import QueueManager
 from src.ser.common.receiver_mixin import ReceiverMixin
+from src.ser.common.rich_text import RichText
 from src.ser.common.value_object.author import Author
 
 
@@ -45,21 +46,20 @@ class ReceiverImagesMixin(ReceiverMixin):
             self,
             img: Tag,
             url: Optional[str] = None,
-            title: Optional[str] = None,
+            rich_title: Optional[RichText] = None,
             check_cache: Optional = True,
     ) -> Optional[Publication]:
         file_name = await self._get_filename_from_url(url=img.attrs['src'])
         if file_name not in self._cache or not check_cache:
-            title = title or self._TITLE
             url = url or img.attrs['src']
             file = await self._get_file_value_object(url=img.attrs['src'],
-                                                     pretty_name=title,
+                                                     pretty_name=rich_title,
                                                      filename_unique=self._FILENAME_UNIQUE,
                                                      public_url=self._PUBLIC_URL)
 
             return Publication(
                 publication_id=file_name,
-                title=title,
+                title=rich_title,
                 url=url,
                 timestamp=datetime.utcnow(),
                 color=self._colour,

@@ -4,11 +4,12 @@ import logging
 import re
 import textwrap
 from asyncio import Queue, AbstractEventLoop, Task
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 import discord
 from discord import File
 
+from src.ser.common.enums.format_data import FormatData
 from src.ser.common.sender_mixin import SenderMixin
 from src.ser.common.value_object.queue_data import QueueData
 from src.ser.discord.data.bot_config import BotConfig
@@ -21,6 +22,8 @@ from src.ser.discord.data.reporting_channel_config import ReportingChannelConfig
 class DiscordService(discord.Client, SenderMixin):
     """Discord Client."""
     MODULE = 'Discord'
+    _MAX_DESCRIPTION_LENGTH = 2000
+    _FORMAT_DATA = FormatData.PLAIN
 
     def __init__(self, *, instance_name: str, config: BotConfig, loop: AbstractEventLoop, publication_queue: Queue,
                  state_change_queue: Queue, logging_level: str):
@@ -104,16 +107,13 @@ class DiscordService(discord.Client, SenderMixin):
 
     async def _load_publication(self, *, queue_data: QueueData) -> None:
         channel = await self._get_channel(channel_id=queue_data.channel)
-        description = queue_data.publication.description or ''
-        description_chunks = textwrap.wrap(description, width=2000, replace_whitespace=False)
-        if not description_chunks:
-            description_chunks = [None]
 
+        description_chunks = await self._get_description_chunks(queue_data=queue_data)
         i = 1
         file = None
         for description_chunk in description_chunks:
             embed = discord.Embed(
-                title=queue_data.publication.title,
+                title=await self._get_format_data(data=queue_data.publication.title, format_data=self._FORMAT_DATA),
                 description=description_chunk,
                 url=queue_data.publication.url,
                 colour=queue_data.publication.color,
@@ -145,6 +145,17 @@ class DiscordService(discord.Client, SenderMixin):
             await channel.send(embed=embed, file=file)
             i += 1
         await self._send_extras(queue_data=queue_data, channel=channel)
+
+    async def _get_description_chunks(self, queue_data) -> List[str]:
+        if queue_data.publication.description:
+            description = queue_data.publication.description.to_format(format_data=self._FORMAT_DATA)
+        else:
+            description = ''
+        description_chunks = textwrap.wrap(description, width=self._MAX_DESCRIPTION_LENGTH, replace_whitespace=False)
+        if not description_chunks:
+            description_chunks = [None]
+
+        return description_chunks
 
     async def _send_extras(self, queue_data: QueueData, channel: discord.TextChannel):
         if queue_data.publication.images:

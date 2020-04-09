@@ -11,10 +11,12 @@ from bs4 import BeautifulSoup
 from bs4.element import Tag
 
 from src.ser.common.data.weiss_schwarz_barcelona_data import WeissSchwarzBarcelonaData
+from src.ser.common.enums.format_data import FormatData
 from src.ser.common.enums.language import Language
 from src.ser.common.itf.publication import Publication
 from src.ser.common.queue_manager import QueueManager
 from src.ser.common.receiver_mixin import ReceiverMixin
+from src.ser.common.rich_text import RichText
 from src.ser.common.value_object.transacation_data import TransactionData
 from src.ser.ws_today_card.data.config import Config
 from src.ser.ws_today_card.models.identifier import Identifier, METADATA
@@ -88,10 +90,10 @@ class WSTodayCard(ReceiverMixin, WeissSchwarzBarcelonaData):
             file = await self._get_file_value_object(url=urllib.parse.urljoin(self._domain, card.attrs['src']),
                                                      pretty_name=self._title,
                                                      public_url=True)
-
+        rich_title = RichText(data=self._add_html_tag(self._title, self._TITLE_HTML_TAG), format_data=FormatData.HTML)
         return Publication(
             publication_id=file_name,
-            title=self._title,
+            title=rich_title,
             url=self._url,
             timestamp=datetime.utcnow(),
             color=self._colour,

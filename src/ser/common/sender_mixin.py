@@ -4,8 +4,10 @@ import asyncio
 from abc import abstractmethod
 from asyncio import Queue, QueueEmpty, Task
 from logging import Logger
+from typing import Optional
 
 from src.ser.common.enums.state import State
+from src.ser.common.rich_text import RichText
 from src.ser.common.service_mixin import ServiceMixin
 from src.ser.common.value_object.queue_data import QueueData
 from src.ser.common.value_object.task_value_object import TaskValueObject

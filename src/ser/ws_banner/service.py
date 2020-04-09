@@ -6,9 +6,11 @@ from asyncio import Queue
 from bs4 import BeautifulSoup
 
 from src.ser.common.data.weiss_schwarz_barcelona_data import WeissSchwarzBarcelonaData
+from src.ser.common.enums.format_data import FormatData
 from src.ser.common.enums.language import Language
 from src.ser.common.queue_manager import QueueManager
 from src.ser.common.receiver_images_mixin import ReceiverImagesMixin
+from src.ser.common.rich_text import RichText
 from src.ser.common.value_object.transacation_data import TransactionData
 from src.ser.ws_banner.data.config import Config
 from src.ser.ws_banner.models.identifier import METADATA, Identifier
@@ -32,7 +34,10 @@ class WSBannerService(ReceiverImagesMixin, WeissSchwarzBarcelonaData):
         self._instance_name = instance_name
         logger = logging.getLogger(self._instance_name)
         logger.setLevel(logging_level)
-        self._title = self._TITLE.format(language.value)
+
+        title = self._TITLE.format(language.value)
+        title = self._add_html_tag(string=title, tag=self._TITLE_HTML_TAG)
+        self._title = RichText(data=title, format_data=FormatData.HTML)
         if language == Language.ENGLISH:
             self._url = self._EN_URL
         elif language == Language.JAPANESE:
@@ -57,7 +62,7 @@ class WSBannerService(ReceiverImagesMixin, WeissSchwarzBarcelonaData):
         banners = beautiful_soap.findAll('div', class_='slide-banner')[0].findAll('img')
 
         for banner in banners:
-            publication = await self._create_publication_from_img(img=banner, url=self._url, title=self._title)
+            publication = await self._create_publication_from_img(img=banner, url=self._url, rich_title=self._title)
             if publication:
                 transaction_data = TransactionData(transaction_id=publication.publication_id,
                                                    publications=[publication])

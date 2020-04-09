@@ -3,6 +3,11 @@ from abc import abstractmethod
 
 
 # pylint: disable=too-few-public-methods
+from typing import Optional
+
+from src.ser.common.rich_text import RichText
+
+
 class ServiceMixin:
     """Common Service Mixin. This class includes methods that required by senders services and receivers services."""
     MODULE = NotImplementedError  # type: str
@@ -20,3 +25,9 @@ class ServiceMixin:
     async def run(self):
         """Run instance method."""
         raise NotImplementedError
+
+    @staticmethod
+    async def _get_format_data(data: Optional[RichText], format_data) -> Optional[str]:
+        if data:
+            return data.to_format(format_data=format_data)
+        return data

@@ -11,7 +11,6 @@ from src.ser.common.receiver_mixin import ReceiverMixin
 from src.ser.common.sender_mixin import SenderMixin
 from src.ser.common.value_object.task_value_object import TaskValueObject
 from src.ser.discord.service import DiscordService
-# pylint: disable=too-few-public-methods
 from src.ser.ws_banner.service import WSBannerService
 from src.ser.ws_news.service import WSNews
 from src.ser.ws_today_card.service import WSTodayCard
