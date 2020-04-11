@@ -5,7 +5,7 @@ from asyncio import Queue
 
 from bs4 import BeautifulSoup
 
-from src.ser.common.data.weiss_schwarz_barcelona_data import WeissSchwarzBarcelonaData
+from src.ser.common.data.weiss_schwarz_barcelona_data import BrigadaSOSData
 from src.ser.common.enums.format_data import FormatData
 from src.ser.common.itf.custom_config import CustomConfig
 from src.ser.common.queue_manager import QueueManager
@@ -15,7 +15,7 @@ from src.ser.common.value_object.transacation_data import TransactionData
 from src.ser.ws_tournament_en.models.identifier import Identifier, METADATA
 
 
-class WSTournamentEn(ReceiverImagesMixin, WeissSchwarzBarcelonaData):
+class WSTournamentEn(ReceiverImagesMixin, BrigadaSOSData):
     """Weiß Schwarz - English Edition - Monthly Shop Tournament Card service. This is a receiver service.
     Get all English Edition - Monthly Shop Tournament Cards."""
 

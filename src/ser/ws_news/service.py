@@ -9,7 +9,7 @@ from typing import List, Optional
 
 from bs4 import BeautifulSoup, element
 
-from src.ser.common.data.weiss_schwarz_barcelona_data import WeissSchwarzBarcelonaData
+from src.ser.common.data.weiss_schwarz_barcelona_data import BrigadaSOSData
 from src.ser.common.enums.format_data import FormatData
 from src.ser.common.itf.custom_config import CustomConfig
 from src.ser.common.itf.publication import Publication
@@ -20,7 +20,7 @@ from src.ser.common.value_object.transacation_data import TransactionData
 from src.ser.ws_news.models.identifier import Identifier, METADATA
 
 
-class WSNews(ReceiverMixin, WeissSchwarzBarcelonaData):
+class WSNews(ReceiverMixin, BrigadaSOSData):
     """Weiß Schwarz - News. This is a receiver service. Get news."""
 
     MODULE = "Weiß Schwarz - News"

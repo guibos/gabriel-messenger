@@ -5,7 +5,7 @@ from asyncio import Queue
 
 from bs4 import BeautifulSoup
 
-from src.ser.common.data.weiss_schwarz_barcelona_data import WeissSchwarzBarcelonaData
+from src.ser.common.data.weiss_schwarz_barcelona_data import BrigadaSOSData
 from src.ser.common.enums.format_data import FormatData
 from src.ser.common.itf.custom_config import CustomConfig
 from src.ser.common.queue_manager import QueueManager
@@ -15,7 +15,7 @@ from src.ser.common.value_object.transacation_data import TransactionData
 from src.ser.ws_tournament_jp.models.identifier import Identifier, METADATA
 
 
-class WSTournamentJp(ReceiverImagesMixin, WeissSchwarzBarcelonaData):
+class WSTournamentJp(ReceiverImagesMixin, BrigadaSOSData):
     """Weiß Schwarz - Japanese Edition - Tournament. This is a receiver service.
     Get data of Japanese - Monthly Shop Tournament Cards."""
 

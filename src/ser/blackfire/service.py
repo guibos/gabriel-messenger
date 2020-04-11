@@ -13,7 +13,7 @@ from src.ser.blackfire.data.blackfire_publication import BlackfirePublication
 from src.ser.blackfire.data.config import Config
 from src.ser.blackfire.data.custom_fields import CustomFields
 from src.ser.blackfire.models.identifier import Identifier, METADATA
-from src.ser.common.data.weiss_schwarz_barcelona_data import WeissSchwarzBarcelonaData
+from src.ser.common.data.weiss_schwarz_barcelona_data import BrigadaSOSData
 from src.ser.common.enums.format_data import FormatData
 from src.ser.common.queue_manager import QueueManager
 from src.ser.common.receiver_mixin import ReceiverMixin
@@ -22,7 +22,7 @@ from src.ser.common.value_object.custom_field import CustomField
 from src.ser.common.value_object.transacation_data import TransactionData
 
 
-class BlackfireService(ReceiverMixin, WeissSchwarzBarcelonaData):
+class BlackfireService(ReceiverMixin, BrigadaSOSData):
     """Blackfire service. This is a receiver service. With a string parameter allows module filter product of
     all products of ADC Blackfire."""
     MODULE = 'Blackfire'
