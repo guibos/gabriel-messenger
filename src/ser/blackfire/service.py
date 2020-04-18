@@ -1,5 +1,4 @@
 """Blackfire service module. This is a receiver service."""
-import logging
 import re
 import urllib.parse
 from asyncio import Queue
@@ -9,6 +8,7 @@ from typing import List, Optional
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 
+from src.inf.logger.itf.logger_interface import LoggerInterface
 from src.ser.blackfire.data.blackfire_publication import BlackfirePublication
 from src.ser.blackfire.data.config import Config
 from src.ser.blackfire.data.custom_fields import CustomFields
@@ -37,11 +37,8 @@ class BlackfireService(ReceiverMixin, BrigadaSOSData):
     _PUBLIC_URL = True
     _FORMAT_DATA = FormatData.HTML
 
-    def __init__(self, *, files_directory: str, instance_name: str, queue_manager: QueueManager, search_parameters: str,
-                 download_files: bool, wait_time: int, logging_level: str, state_change_queue: Queue, colour: int):
-        self._instance_name = instance_name
-        logger = logging.getLogger(self._instance_name)
-        logger.setLevel(logging_level)
+    def __init__(self, *, files_directory: str, queue_manager: QueueManager, search_parameters: str,
+                 download_files: bool, wait_time: int, logger: LoggerInterface, state_change_queue: Queue, colour: int):
         super().__init__(logger=logger,
                          wait_time=wait_time,
                          state_change_queue=state_change_queue,
@@ -99,8 +96,10 @@ class BlackfireService(ReceiverMixin, BrigadaSOSData):
             dead_line=self._get_dead_line(beautiful_soup_description=beautiful_soup_description),
         )
         product_value_object = BlackfirePublication(publication_id=product_id,
-                                                    title=RichText(data=product_name_rich, format_data=self._FORMAT_DATA),
-                                                    description=RichText(data=product_description_rich, format_data=self._FORMAT_DATA),
+                                                    title=RichText(data=product_name_rich,
+                                                                   format_data=self._FORMAT_DATA),
+                                                    description=RichText(data=product_description_rich,
+                                                                         format_data=self._FORMAT_DATA),
                                                     url=product_url,
                                                     timestamp=datetime.utcnow(),
                                                     color=self._colour,

@@ -6,12 +6,14 @@ verify_ssl = true
 [packages]
 aiofiles = "*"
 aiohttp = "*"
+aiologger = "*"
+aiosmtplib = "*"
 aiosqlite = "*"
 appdirs = "*"
 arsenic = "*"
 beautifulsoup4 = "*"
+discord = {py = "*"}
 html5lib = "*"
-discord.py = "*"
 orm = "==0.1.5"
 tzlocal = "*"
 pypandoc = "*"

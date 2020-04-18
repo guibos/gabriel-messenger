@@ -43,9 +43,8 @@ class Configuration:
             self._config['configuration']['global_logging_level'] = self._config['configuration'][
                 'global_logging_level']
 
-    def get_global_configuration(self) -> Dict[str, Union[str, Environment]]:
+    def get_global_configuration(self) -> Dict[str, Union[str, Environment, dict]]:
         """Get a configuration section.
-        :param section: (str) The configuration section.
         :return: (dict) dictionary of values).
         """
         try:

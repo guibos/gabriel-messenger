@@ -4,14 +4,13 @@ import asyncio
 import hashlib
 import os
 import time
+import traceback
 from abc import abstractmethod
 from asyncio import Queue
-from logging import Logger
 from typing import Dict, List
 
 import aiofiles
 import aiohttp
-import appdirs
 import databases
 import sqlalchemy
 from aiohttp import ClientResponse
@@ -19,6 +18,8 @@ from bs4 import BeautifulSoup
 from orm.models import ModelMetaclass
 from sqlalchemy import MetaData
 
+from src.inf.logger.itf.logger_interface import LoggerInterface
+from src.inf.logger.logger import Logger
 from src.ser.common.abstract.attribute import AbstractAttribute
 from src.ser.common.enums.environment import Environment
 from src.ser.common.enums.format_data import FormatData
@@ -34,14 +35,14 @@ from src.ser.common.value_object.transacation_data import TransactionData
 
 class ReceiverMixin(ServiceMixin):
     """Receiver Common Service Mixin. This mixin include methods required by receivers services."""
-
     MODEL_IDENTIFIER: ModelMetaclass = AbstractAttribute()
     MODELS: List[ModelMetaclass] = AbstractAttribute()
     MODELS_METADATA: MetaData = AbstractAttribute()
     _TITLE_HTML_TAG = 'h1'
+    _FILES_DIRECTORY = 'files'
 
     # pylint: disable=too-many-arguments
-    def __init__(self, logger: Logger, wait_time: int, state_change_queue: Queue, queue_manager: QueueManager,
+    def __init__(self, logger: LoggerInterface, wait_time: int, state_change_queue: Queue, queue_manager: QueueManager,
                  files_directory: str, download_files: bool):
         self._logger = logger
         self._wait_time = wait_time
@@ -66,12 +67,6 @@ class ReceiverMixin(ServiceMixin):
         return QueueManager(queue_context_list=queue_context_list)
 
     @classmethod
-    def _get_repository_directory(cls, *, app_name: str, environment: Environment):
-        repository_directory = os.path.join(appdirs.user_data_dir(app_name), environment.value, cls.MODULE)
-        os.makedirs(repository_directory, exist_ok=True)
-        return repository_directory
-
-    @classmethod
     def _set_database(cls, *, metadata: MetaData, models: List[ModelMetaclass], app_name: str,
                       environment: Environment):
         repository_directory = cls._get_repository_directory(app_name=app_name, environment=environment)
@@ -90,20 +85,23 @@ class ReceiverMixin(ServiceMixin):
         os.makedirs(files_directory, exist_ok=True)
         return files_directory
 
-    async def _loop_manager(self, *, wait_time: int, state_change_queue: Queue, logger: Logger) -> None:
+    async def _loop_manager(self, *, wait_time: int, state_change_queue: Queue) -> None:
         start = 0
         running = True
         while running:
             if (time.time() - start) > wait_time:
-                await self._load_publications()
-                logger.debug("Waiting %s seconds", wait_time)
+                try:
+                    await self._load_publications()
+                except:
+                    self._logger.error(traceback.format_exc())
+                self._logger.debug(f"Waiting {wait_time} seconds", )
                 start = time.time()
             else:
                 await asyncio.sleep(self._WAIT_TIME)
-                logger.debug("Remains %s seconds, to execute the task.", int(wait_time - (time.time() - start)))
+                self._logger.debug(f"Remains {int(wait_time - (time.time() - start))} seconds, to execute the task.")
 
             if state_change_queue.empty():
-                logger.debug("No new state.")
+                self._logger.debug("No new state.")
             else:
                 new_state: State = state_change_queue.get_nowait()
                 if new_state == State.STOP:
@@ -111,7 +109,7 @@ class ReceiverMixin(ServiceMixin):
                 else:
                     raise NotImplementedError
         await self._close()
-        logger.info("Shutdown")
+        self._logger.info("Shutdown")
 
     @abstractmethod
     async def _load_publications(self) -> None:
@@ -162,9 +160,7 @@ class ReceiverMixin(ServiceMixin):
     async def run(self):
         self._logger.info("Instance is working")
         await self._load_cache()
-        await self._loop_manager(wait_time=self._wait_time,
-                                 state_change_queue=self._state_change_queue,
-                                 logger=self._logger)
+        await self._loop_manager(wait_time=self._wait_time, state_change_queue=self._state_change_queue)
 
     async def _get_site_content(self, *, url) -> bytes:
         """This method get a url and return content in bytes."""
@@ -178,7 +174,8 @@ class ReceiverMixin(ServiceMixin):
             return resp
 
     @classmethod
-    def create_tasks_from_configuration(cls, *, configuration, senders, loop, app_name, environment, logging_level):
+    def create_tasks_from_configuration(cls, *, configuration, senders, loop, app_name, environment,
+                                        logger_configuration: dict):
         """Application will call this method to create tasks or only one task of each receiver service.
         Application is the responsible to pass all necessary information or configuration to create these tasks."""
         cls._set_database(models=cls.MODELS, metadata=cls.MODELS_METADATA, app_name=app_name, environment=environment)
@@ -189,24 +186,27 @@ class ReceiverMixin(ServiceMixin):
             'wait_time': configuration['wait_time'],
             'download_files': configuration['download_files'],
             'files_directory': files_directory,
-            'logging_level': logging_level,
         }
 
         service_instances_config = cls._get_custom_configuration(configuration=configuration, senders=senders)
 
         instance_value_objects: List[TaskValueObject] = []
-
         for service_instance_config in service_instances_config:
             state_change_queue = Queue()
+            custom_config = service_instance_config.__dict__
+            instance_name = custom_config.pop('instance_name')
+            logger = Logger.get_logger(configuration=logger_configuration, name=instance_name, path=files_directory)
             task = loop.create_task(cls(
+                logger=logger,
                 **service_global_config,
-                **service_instance_config.__dict__,
+                **custom_config,
                 state_change_queue=state_change_queue,
             ).run(),
-                                    name=service_instance_config.instance_name)
+                                    name=instance_name)
+
             instance_value_objects.append(
                 TaskValueObject(
-                    name=service_instance_config.instance_name,
+                    name=instance_name,
                     task=task,
                     state_change_queue=state_change_queue,
                 ))
@@ -226,7 +226,8 @@ class ReceiverMixin(ServiceMixin):
     async def _put_in_queue(self, transaction_data: TransactionData):
         for publication in transaction_data.publications:
             await self._queue_manager.put(publication=publication)
-            self._logger.info("New publication: %s", await self._get_format_data(data=publication.title, format_data=FormatData.PLAIN))
+            publication_name = await self._get_format_data(data=publication.title, format_data=FormatData.PLAIN)
+            self._logger.info(f"New publication: {publication_name}")
         await self.MODEL_IDENTIFIER.objects.create(id=transaction_data.transaction_id)
         self._cache.append(transaction_data.transaction_id)
 

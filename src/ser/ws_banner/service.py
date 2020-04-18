@@ -1,10 +1,10 @@
 """Weiss Schwarz Banner service Module."""
 
-import logging
 from asyncio import Queue
 
 from bs4 import BeautifulSoup
 
+from src.inf.logger.itf.logger_interface import LoggerInterface
 from src.ser.common.data.weiss_schwarz_barcelona_data import BrigadaSOSData
 from src.ser.common.enums.format_data import FormatData
 from src.ser.common.enums.language import Language
@@ -29,12 +29,8 @@ class WSBannerService(ReceiverImagesMixin, BrigadaSOSData):
 
     _PUBLIC_URL = True
 
-    def __init__(self, *, files_directory: str, instance_name: str, queue_manager: QueueManager, language: Language,
-                 download_files: bool, wait_time: int, logging_level: str, state_change_queue: Queue, colour: int):
-        self._instance_name = instance_name
-        logger = logging.getLogger(self._instance_name)
-        logger.setLevel(logging_level)
-
+    def __init__(self, *, files_directory: str, queue_manager: QueueManager, language: Language, download_files: bool,
+                 wait_time: int, logger: LoggerInterface, state_change_queue: Queue, colour: int):
         title = self._TITLE.format(language.value)
         title = self._add_html_tag(string=title, tag=self._TITLE_HTML_TAG)
         self._title = RichText(data=title, format_data=FormatData.HTML)
