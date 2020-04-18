@@ -1,6 +1,5 @@
 """Weiß Schwarz - News Module."""
 
-import logging
 import re
 import urllib.parse
 from asyncio import Queue
@@ -9,6 +8,7 @@ from typing import List, Optional
 
 from bs4 import BeautifulSoup, element
 
+from src.inf.logger.itf.logger_interface import LoggerInterface
 from src.ser.common.data.weiss_schwarz_barcelona_data import BrigadaSOSData
 from src.ser.common.enums.format_data import FormatData
 from src.ser.common.itf.custom_config import CustomConfig
@@ -32,17 +32,10 @@ class WSNews(ReceiverMixin, BrigadaSOSData):
     MODEL_IDENTIFIER = Identifier
     MODELS = (Identifier, )
     MODELS_METADATA = METADATA
-    _BANNED_ALT = (
-        "FB_icon",
-        "IG_icon",
-        "Twitter_icon"
-    )
+    _BANNED_ALT = ("FB_icon", "IG_icon", "Twitter_icon")
 
-    def __init__(self, *, files_directory: str, instance_name: str, queue_manager: QueueManager, download_files: bool,
-                 wait_time: int, logging_level: str, state_change_queue: Queue, colour: int):
-        self._instance_name = instance_name
-        logger = logging.getLogger(self._instance_name)
-        logger.setLevel(logging_level)
+    def __init__(self, *, files_directory: str, queue_manager: QueueManager, download_files: bool, wait_time: int,
+                 logger: LoggerInterface, state_change_queue: Queue, colour: int):
         super().__init__(logger=logger,
                          wait_time=wait_time,
                          state_change_queue=state_change_queue,

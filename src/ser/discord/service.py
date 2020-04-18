@@ -1,6 +1,5 @@
 """Discord Client Module"""
 import asyncio
-import logging
 import re
 import textwrap
 from asyncio import Queue, AbstractEventLoop, Task
@@ -9,6 +8,7 @@ from typing import Dict, Any, List
 import discord
 from discord import File
 
+from src.inf.logger.itf.logger_interface import LoggerInterface
 from src.ser.common.enums.format_data import FormatData
 from src.ser.common.sender_mixin import SenderMixin
 from src.ser.common.value_object.queue_data import QueueData
@@ -25,46 +25,41 @@ class DiscordService(discord.Client, SenderMixin):
     _MAX_DESCRIPTION_LENGTH = 2000
     _FORMAT_DATA = FormatData.PLAIN
 
-    def __init__(self, *, instance_name: str, config: BotConfig, loop: AbstractEventLoop, publication_queue: Queue,
-                 state_change_queue: Queue, logging_level: str):
+    def __init__(self, *, config: BotConfig, loop: AbstractEventLoop, publication_queue: Queue,
+                 state_change_queue: Queue, logger: LoggerInterface, failed_publication_directory: str):
         discord.Client.__init__(self, loop=loop)
-
-        self._instance_name = instance_name
-        self._logger = logging.getLogger(self._instance_name)
-        self._logger.setLevel(logging_level)
+        SenderMixin.__init__(self,
+                             state_change_queue=state_change_queue,
+                             publication_queue=publication_queue,
+                             logger=logger,
+                             failed_publication_directory=failed_publication_directory)
         self._config = config
         self._publication_queue = publication_queue
         self._channels: Dict[int, discord.TextChannel] = {}
-        self._publication_queue = publication_queue
-        self._state_change_queue = state_change_queue
 
     async def on_ready(self):
         """On ready: create tasks"""
         self._logger.info("Instance is working")
         await self.change_presence(activity=self._config.activity)
-        self.loop.create_task(
-            self._loop_manager(
-                state_change_queue=self._state_change_queue,
-                logger=self._logger,
-                publication_queue=self._publication_queue,
-            ))
+        self.loop.create_task(self._manager())
 
     # pylint: disable=too-many-arguments
     @classmethod
     def _create_task_from_configuration_custom(cls, configuration_item: dict, instance_name: str,
                                                loop: asyncio.AbstractEventLoop, publication_queue: Queue,
-                                               state_change_queue: Queue, logging_level: str) -> Task:
+                                               state_change_queue: Queue, logging_level: str,
+                                               failed_publication_directory, logger: LoggerInterface) -> Task:
         bot_config = BotConfig(activity=cls._get_activity(activity_configuration=configuration_item['activity']),
                                channels_config=cls._get_channels_config(channels_config=configuration_item['channels']),
                                clean_channels=configuration_item['clean_channels'],
                                reporting_channels=configuration_item['reporting_channels'])
         discord_instance = cls(
-            instance_name=instance_name,
             config=bot_config,
             loop=loop,
             publication_queue=publication_queue,
             state_change_queue=state_change_queue,
-            logging_level=logging_level,
+            failed_publication_directory=failed_publication_directory,
+            logger=logger,
         )
         return loop.create_task(discord_instance.start(configuration_item['token']), name=instance_name)
 

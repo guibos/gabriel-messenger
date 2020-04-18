@@ -1,10 +1,11 @@
 """Common Repository Mixin Module."""
+import os
 from abc import abstractmethod
-
-
-# pylint: disable=too-few-public-methods
 from typing import Optional
 
+import appdirs
+
+from src.ser.common.enums.environment import Environment
 from src.ser.common.rich_text import RichText
 
 
@@ -12,7 +13,6 @@ class ServiceMixin:
     """Common Service Mixin. This class includes methods that required by senders services and receivers services."""
     MODULE = NotImplementedError  # type: str
     _DATABASE_FILE = "db.sqlite"
-    _FILES_DIRECTORY = 'files'
     _WAIT_TIME = 5
 
     @classmethod
@@ -31,3 +31,9 @@ class ServiceMixin:
         if data:
             return data.to_format(format_data=format_data)
         return data
+
+    @classmethod
+    def _get_repository_directory(cls, *, app_name: str, environment: Environment) -> str:
+        repository_directory = os.path.join(appdirs.user_data_dir(app_name), environment.value, cls.MODULE)
+        os.makedirs(repository_directory, exist_ok=True)
+        return repository_directory

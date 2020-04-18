@@ -1,10 +1,12 @@
 """Application Module."""
 import asyncio
-import logging
 import signal
 from typing import Tuple, Dict, Union, List
 
+import appdirs
+
 from src.inf.configuration.configuration import Configuration
+from src.inf.logger.logger import Logger
 from src.ser.blackfire.service import BlackfireService
 from src.ser.common.enums.state import State
 from src.ser.common.receiver_mixin import ReceiverMixin
@@ -33,32 +35,41 @@ class Application:
     )
 
     def __init__(self, configuration: Configuration):
-        self._logger = logging.getLogger(self._APP_NAME)
-        self._logger.setLevel(configuration.get_global_configuration()['app_logging_level'])
+        files_directory = appdirs.user_data_dir(self._APP_NAME)
+        logger_configuration = configuration.get_global_configuration()['logger']
         self._environment = configuration.get_global_configuration()['environment']
         self._loop = asyncio.get_event_loop()
         self._loop.add_signal_handler(signal.SIGINT, self._clean_shutdown)
         self._senders_repositories_instances_value_objects = self._get_senders(
-            config=configuration.get_modules()['sender'], loop=self._loop, configuration=configuration)
+            config=configuration.get_modules()['sender'],
+            loop=self._loop,
+            configuration=configuration,
+            logger_configuration=logger_configuration,
+        )
         self._receivers_repositories_instances_value_objects = self._get_receivers(
             config=configuration.get_modules()['receiver'],
             senders=self._senders_repositories_instances_value_objects,
-            logging_level=configuration.get_global_configuration()['app_logging_level'],
             loop=self._loop,
+            logger_configuration=logger_configuration,
         )
+        self._logger = Logger.get_logger(configuration=logger_configuration, name=self._APP_NAME, path=files_directory)
 
-    def _get_senders(self, *, config: Dict, loop: asyncio.AbstractEventLoop,
-                     configuration: Configuration) -> Dict[str, Dict[str, TaskValueObject]]:
+    def _get_senders(self, *, config: Dict, loop: asyncio.AbstractEventLoop, configuration: Configuration,
+                     logger_configuration: dict) -> Dict[str, Dict[str, TaskValueObject]]:
         return {
             sender_name: self._get_sender_class(sender_name=sender_name).create_tasks_from_configuration(
                 configuration=sender_config,
                 loop=loop,
-                logging_level=configuration.get_global_configuration()['app_logging_level'])
+                logging_level=configuration.get_global_configuration()['app_logging_level'],
+                app_name=self._APP_NAME,
+                environment=self._environment,
+                logger_configuration=logger_configuration,
+            )
             for sender_name, sender_config in config.items()
         }
 
-    def _get_receivers(self, *, config: dict, senders: Dict[str, Dict[str, TaskValueObject]], logging_level: str,
-                       loop: asyncio.AbstractEventLoop) -> List[TaskValueObject]:
+    def _get_receivers(self, *, config: dict, senders: Dict[str, Dict[str, TaskValueObject]],
+                       logger_configuration: dict, loop: asyncio.AbstractEventLoop) -> List[TaskValueObject]:
         tasks = []
         for receiver_name, receiver_config in config.items():
             tasks.extend(
@@ -68,7 +79,7 @@ class Application:
                     loop=loop,
                     app_name=self._APP_NAME,
                     environment=self._environment,
-                    logging_level=logging_level))
+                    logger_configuration=logger_configuration))
         return tasks
 
     def _get_sender_class(self, *, sender_name: str) -> SenderMixin:
@@ -137,9 +148,9 @@ class Application:
             are_finished = True
             for value in repositories_instances_value_objects:
                 if not value.task.done():
-                    self._logger.info('Task: "%s" is currently working.', value.name)
+                    self._logger.info(f'Task: "{value.name}" is currently working.')
                     are_finished = False
             if are_finished:
                 break
-            self._logger.info("Sleeping %s seconds.", self._SLEEPING_SECONDS)
+            self._logger.info(f"Sleeping {self._SLEEPING_SECONDS} seconds.")
             await asyncio.sleep(5)

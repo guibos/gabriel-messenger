@@ -3,11 +3,11 @@
 from abc import abstractmethod
 from asyncio import Queue
 from datetime import datetime
-from logging import Logger
 from typing import List, Optional
 
 from bs4.element import Tag
 
+from src.inf.logger.itf.logger_interface import LoggerInterface
 from src.ser.common.abstract.attribute import AbstractAttribute
 from src.ser.common.itf.publication import Publication
 from src.ser.common.queue_manager import QueueManager
@@ -25,7 +25,7 @@ class ReceiverImagesMixin(ReceiverMixin):
 
     # pylint: disable=too-many-arguments
     def __init__(self, queue_manager: QueueManager, download_files: bool, files_directory: str, colour: int,
-                 author: Author, logger: Logger, wait_time: int, state_change_queue: Queue):
+                 author: Author, logger: LoggerInterface, wait_time: int, state_change_queue: Queue):
         super().__init__(logger=logger,
                          wait_time=wait_time,
                          state_change_queue=state_change_queue,

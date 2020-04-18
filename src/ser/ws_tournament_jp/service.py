@@ -1,10 +1,10 @@
 """Weiß Schwarz - Japanese Edition - Tournament Module"""
 
-import logging
 from asyncio import Queue
 
 from bs4 import BeautifulSoup
 
+from src.inf.logger.itf.logger_interface import LoggerInterface
 from src.ser.common.data.weiss_schwarz_barcelona_data import BrigadaSOSData
 from src.ser.common.enums.format_data import FormatData
 from src.ser.common.itf.custom_config import CustomConfig
@@ -29,12 +29,11 @@ class WSTournamentJp(ReceiverImagesMixin, BrigadaSOSData):
     _JP_URL = 'https://ws-tcg.com/events/list/battle_{}'
     _TITLE = "Japanese Edition - Monthly Shop Tournament Card"
 
-    def __init__(self, *, files_directory: str, instance_name: str, queue_manager: QueueManager, download_files: bool,
-                 wait_time: int, logging_level: str, state_change_queue: Queue, colour: int):
-        self._instance_name = instance_name
-        logger = logging.getLogger(self._instance_name)
-        logger.setLevel(logging_level)
-        self._title = RichText(data=self._add_html_tag(self._TITLE, tag=self._TITLE_HTML_TAG), format_data=FormatData.HTML)
+    def __init__(self, *, files_directory: str, queue_manager: QueueManager, download_files: bool, wait_time: int,
+                 logger: LoggerInterface, state_change_queue: Queue, colour: int):
+
+        self._title = RichText(data=self._add_html_tag(self._TITLE, tag=self._TITLE_HTML_TAG),
+                               format_data=FormatData.HTML)
         super().__init__(download_files=download_files,
                          files_directory=files_directory,
                          colour=colour,
@@ -61,7 +60,10 @@ class WSTournamentJp(ReceiverImagesMixin, BrigadaSOSData):
 
             publications = []
             for image in images:
-                publications.append(await self._create_publication_from_img(img=image, url=url, check_cache=False, rich_title= self._title))
+                publications.append(await self._create_publication_from_img(img=image,
+                                                                            url=url,
+                                                                            check_cache=False,
+                                                                            rich_title=self._title))
             transaction_data = TransactionData(transaction_id=ws_id, publications=publications)
             await self._put_in_queue(transaction_data=transaction_data)
 
