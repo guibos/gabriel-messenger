@@ -11,6 +11,8 @@ class RichText:
     _STORAGE_FORMAT = FormatData.HTML
 
     def __init__(self, data: str, format_data: FormatData):
+        if format_data == FormatData.PLAIN:
+            format_data = FormatData.HTML
         self._data: str = pypandoc.convert_text(data, self._STORAGE_FORMAT.value, format=format_data.value)
 
     def to_format(self, *, format_data: FormatData) -> str:
