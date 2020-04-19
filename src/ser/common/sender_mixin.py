@@ -88,7 +88,7 @@ class SenderMixin(ServiceMixin):
         raise NotImplementedError
 
     @classmethod
-    def create_tasks_from_configuration(cls, *, configuration, loop, logging_level, app_name: str,
+    def create_tasks_from_configuration(cls, *, configuration, loop, app_name: str,
                                         environment: Environment, logger_configuration: dict):
         """Application will call this method to create tasks or only one task of each sender service. Application is the
         responsible to pass all necessary information or configuration to create these tasks."""
@@ -108,7 +108,6 @@ class SenderMixin(ServiceMixin):
                 loop=loop,
                 publication_queue=publication_queue,
                 state_change_queue=state_change_queue,
-                logging_level=logging_level,
                 failed_publication_directory=failed_publication_directory,
                 logger=logger,
             )
@@ -124,7 +123,7 @@ class SenderMixin(ServiceMixin):
     @abstractmethod
     def _create_task_from_configuration_custom(cls, configuration_item: dict, instance_name: str,
                                                loop: asyncio.AbstractEventLoop, publication_queue: Queue,
-                                               state_change_queue: Queue, logging_level: str,
+                                               state_change_queue: Queue,
                                                failed_publication_directory: str, logger: LoggerInterface) -> Task:
         """Generate Task for a item in configuration."""
         raise NotImplementedError

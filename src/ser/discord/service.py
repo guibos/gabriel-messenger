@@ -47,7 +47,7 @@ class DiscordService(discord.Client, SenderMixin):
     @classmethod
     def _create_task_from_configuration_custom(cls, configuration_item: dict, instance_name: str,
                                                loop: asyncio.AbstractEventLoop, publication_queue: Queue,
-                                               state_change_queue: Queue, logging_level: str,
+                                               state_change_queue: Queue,
                                                failed_publication_directory, logger: LoggerInterface) -> Task:
         bot_config = BotConfig(activity=cls._get_activity(activity_configuration=configuration_item['activity']),
                                channels_config=cls._get_channels_config(channels_config=configuration_item['channels']),
