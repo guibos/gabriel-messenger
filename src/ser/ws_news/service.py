@@ -53,7 +53,6 @@ class WSNews(ReceiverMixin, BrigadaSOSData):
         html = await self._get_site_content(url=self._URL)
         beautiful_soap = BeautifulSoup(html, 'html5lib')
         news = beautiful_soap.find('ul', class_='info-list').find_all('li')
-
         for new in news:
             publication = await self._get_new_new(new=new)
             if publication:
@@ -83,7 +82,7 @@ class WSNews(ReceiverMixin, BrigadaSOSData):
                 beautiful_soap = BeautifulSoup(await self._get_site_content(url=url), 'html5lib')
                 data = beautiful_soap.find(class_='entry-content')
                 description = await self._get_description(data=data)
-                images = await self._get_images(data=data, title=title_str)
+                images = await self._get_images(data=data, title=title_str, max_images=5)
 
             else:
                 file = await self._get_file_value_object(url=url,
@@ -111,10 +110,12 @@ class WSNews(ReceiverMixin, BrigadaSOSData):
             author=self._AUTHOR,
         )
 
-    async def _get_images(self, data: element, title: str) -> element:
+    async def _get_images(self, data: element, title: str, max_images: Optional[int] = None) -> element:
         images = []
         img_urls = []
         img_tags = data.find_all('img')
+        if max_images:
+            img_tags = img_tags[:max_images]
         for img_tag in img_tags:
             if 'alt' in img_tag.attrs:
                 if img_tag.attrs['alt'] in self._BANNED_ALT:
