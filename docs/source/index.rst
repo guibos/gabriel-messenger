@@ -9,7 +9,7 @@ Index
 .. toctree::
    :maxdepth: 2
 
-   quickstart
+   quick_start
    documentation
    todo
 

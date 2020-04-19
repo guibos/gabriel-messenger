@@ -1,8 +1,30 @@
 TODO
 ####
 
-WhatsApp Service
-****************
+Blogger
+*******
+
+Facebook Sender
+***************
+
+Facebook Receiver
+*****************
+Get data from facebook
+
+Features
+========
+ * Get events.
+
+Instagram
+*********
+Send posts
+
+Twitter Sender
+**************
+Send tweets
+
+WhatsApp Sender
+***************
 Implement a solution to upload publications through WhatsApp Web.
 
 Features

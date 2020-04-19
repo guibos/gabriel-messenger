@@ -14,7 +14,7 @@ class ConfigurationError(Exception):
 class Configuration:
     """Read configuration from file."""
 
-    _CONFIG_PATH = "config.yaml"
+    _CONFIG_PATH = "/etc/gabriel-messenger/config.yaml"
 
     def __init__(self,
                  *,

@@ -1,7 +1,7 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
     <title>src.ser.common.service_mixin &#8212; Gabriel Messenger 0.1 documentation</title>
@@ -33,20 +33,44 @@
             
   <h1>Source code for src.ser.common.service_mixin</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Common Repository Mixin Module.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+
+<span class="kn">import</span> <span class="nn">appdirs</span>
+
+<span class="kn">from</span> <span class="nn">src.ser.common.enums.environment</span> <span class="kn">import</span> <span class="n">Environment</span>
+<span class="kn">from</span> <span class="nn">src.ser.common.rich_text</span> <span class="kn">import</span> <span class="n">RichText</span>
 
 
-<span class="c1"># pylint: disable=too-few-public-methods</span>
 <div class="viewcode-block" id="ServiceMixin"><a class="viewcode-back" href="../../../../documentation.html#src.ser.common.service_mixin.ServiceMixin">[docs]</a><span class="k">class</span> <span class="nc">ServiceMixin</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Common Service Mixin. This class includes methods that required by senders services and receivers services.&quot;&quot;&quot;</span>
+    <span class="n">MODULE</span> <span class="o">=</span> <span class="ne">NotImplementedError</span>  <span class="c1"># type: str</span>
     <span class="n">_DATABASE_FILE</span> <span class="o">=</span> <span class="s2">&quot;db.sqlite&quot;</span>
-    <span class="n">_FILES_DIRECTORY</span> <span class="o">=</span> <span class="s1">&#39;files&#39;</span>
     <span class="n">_WAIT_TIME</span> <span class="o">=</span> <span class="mi">5</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">_get_instance_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">args</span><span class="p">:</span>
             <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="n">MODULE</span><span class="si">}</span><span class="s2"> [</span><span class="si">{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="si">}</span><span class="s2">]&quot;</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="n">MODULE</span><span class="si">}</span><span class="s2">&quot;</span></div>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="n">MODULE</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Run instance method.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_get_format_data</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">RichText</span><span class="p">],</span> <span class="n">format_data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">to_format</span><span class="p">(</span><span class="n">format_data</span><span class="o">=</span><span class="n">format_data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_get_repository_directory</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">app_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">environment</span><span class="p">:</span> <span class="n">Environment</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">repository_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">appdirs</span><span class="o">.</span><span class="n">user_data_dir</span><span class="p">(</span><span class="n">app_name</span><span class="p">),</span> <span class="n">environment</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">MODULE</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">repository_directory</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">repository_directory</span></div>
 </pre></div>
 
           </div>
@@ -66,7 +90,7 @@
 
 <h3>Navigation</h3>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quick_start.html">QuickStart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../documentation.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../todo.html">TODO</a></li>
 </ul>
@@ -106,7 +130,7 @@
       &copy;2020, Guibos.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

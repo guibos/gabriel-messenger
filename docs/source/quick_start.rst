@@ -1,4 +1,4 @@
-Quickstart
+QuickStart
 ##########
 
 1. `Create configuration file`_
@@ -45,7 +45,7 @@ Run container
 -------------
 .. code-block:: shell
 
-   docker run -v <your-configuration-directory>:/etc/gabriel-messenger
+   docker run -v <your-configuration-directory>:/etc/gabriel-messenger guibos/gabriel-messenger
 
 Take care that `<your-configuration-directory>` is a directory in your docker host with your `config.yaml`
 
