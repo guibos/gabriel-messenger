@@ -1,15 +1,3 @@
-# Quickstart
-
-Install packages
-
-```
-$ pip install pipenv
-$ pipenv install
-```
-
-Create your configuration.yaml
-
-```
 configuration:
   environment: "<enviornment>"
   app_logging_level: "<logging-level>"
@@ -37,10 +25,3 @@ environment:
             Discord:
               'Publisher':
                 - <channel-id>
-```
-
-Run app
-
-```
-$ pipenv run
-```

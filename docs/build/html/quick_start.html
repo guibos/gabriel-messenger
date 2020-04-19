@@ -1,0 +1,206 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>QuickStart &#8212; Gabriel Messenger 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Documentation" href="documentation.html" />
+    <link rel="prev" title="Gabriel Messenger" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="quickstart">
+<h1>QuickStart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h1>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="#create-configuration-file">Create configuration file</a></p></li>
+<li><p><a class="reference internal" href="#create-application-environment">Create application environment</a></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#run-docker-image">Run docker image</a></p></li>
+<li><p><a class="reference internal" href="#create-your-own-environment">Create your own environment</a></p></li>
+</ul>
+</li>
+</ol>
+<div class="section" id="create-configuration-file">
+<h2>Create configuration file<a class="headerlink" href="#create-configuration-file" title="Permalink to this headline">¶</a></h2>
+<p>Configuration file is a yaml that must be named <cite>config.yaml</cite>. This file must be saved on
+<cite>/etc/gabriel-messenger/config.yaml</cite></p>
+<p>See next example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">configuration</span><span class="p">:</span>
+  <span class="n">environment</span><span class="p">:</span> <span class="s2">&quot;&lt;enviornment&gt;&quot;</span>
+  <span class="n">app_logging_level</span><span class="p">:</span> <span class="s2">&quot;&lt;logging-level&gt;&quot;</span>
+  <span class="n">global_logging_level</span><span class="p">:</span> <span class="s2">&quot;&lt;logging-level&gt;&quot;</span>
+<span class="n">environment</span><span class="p">:</span>
+  <span class="o">&lt;</span><span class="n">environment</span><span class="o">&gt;</span><span class="p">:</span>
+    <span class="n">sender</span><span class="p">:</span>
+      <span class="n">Discord</span><span class="p">:</span>
+        <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="s2">&quot;&lt;bot-identifier&gt;&quot;</span>
+          <span class="n">token</span><span class="p">:</span> <span class="s2">&quot;&lt;discord-token&gt;&quot;</span>
+          <span class="n">activity</span><span class="p">:</span>
+            <span class="n">name</span><span class="p">:</span> <span class="s2">&quot;&lt;human-value&gt;&quot;</span>
+            <span class="nb">type</span><span class="p">:</span> <span class="s2">&quot;&lt;discord-activity-type&gt;&quot;</span>
+          <span class="n">clean_channels</span><span class="p">:</span>
+            <span class="o">-</span> <span class="o">&lt;</span><span class="n">channel</span><span class="o">-</span><span class="nb">id</span><span class="o">&gt;</span>
+          <span class="n">reporting_channels</span><span class="p">:</span>
+            <span class="o">-</span> <span class="o">&lt;</span><span class="n">channel</span><span class="o">-</span><span class="nb">id</span><span class="o">&gt;</span>
+    <span class="n">receiver</span><span class="p">:</span>
+      <span class="n">Blackfire</span><span class="p">:</span>
+        <span class="n">colour</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">integer</span><span class="o">-</span><span class="n">color</span><span class="o">&gt;</span>
+        <span class="n">wait_time</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">seconds</span><span class="o">&gt;</span>
+        <span class="n">download_files</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">true</span><span class="o">-</span><span class="ow">or</span><span class="o">-</span><span class="n">false</span><span class="o">&gt;</span>
+        <span class="n">search</span><span class="p">:</span>
+          <span class="s2">&quot;&lt;string-to-search&gt;&quot;</span><span class="p">:</span>
+            <span class="n">Discord</span><span class="p">:</span>
+              <span class="s1">&#39;Publisher&#39;</span><span class="p">:</span>
+                <span class="o">-</span> <span class="o">&lt;</span><span class="n">channel</span><span class="o">-</span><span class="nb">id</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>You can download this example <a class="reference download internal" download="" href="_downloads/259fe82e12a866f01123927480c7851b/config.yaml"><code class="xref download docutils literal notranslate"><span class="pre">here</span></code></a>.</p>
+</div>
+<div class="section" id="create-application-environment">
+<h2>Create application environment<a class="headerlink" href="#create-application-environment" title="Permalink to this headline">¶</a></h2>
+<p>Currently the are two main ways to execute this app:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#run-docker-image">Run docker image</a></p></li>
+<li><p><a class="reference internal" href="#create-your-own-environment">Create your own environment</a></p></li>
+</ul>
+<p>The easy way to use this app is <a class="reference internal" href="#run-docker-image">run docker image</a>.</p>
+<div class="section" id="run-docker-image">
+<h3>Run docker image<a class="headerlink" href="#run-docker-image" title="Permalink to this headline">¶</a></h3>
+<p>This method is the easy way. <a class="reference external" href="https://hub.docker.com/r/guibos/gabriel-messenger">Docker image</a> will be update of
+every gabriel-messenger update.</p>
+<div class="section" id="install-docker">
+<h4>Install docker<a class="headerlink" href="#install-docker" title="Permalink to this headline">¶</a></h4>
+<p>You must install <a class="reference external" href="https://docs.docker.com/get-docker/">docker</a>.</p>
+</div>
+<div class="section" id="run-container">
+<h4>Run container<a class="headerlink" href="#run-container" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>docker run -v &lt;your-configuration-directory&gt;:/etc/gabriel-messenger guibos/gabriel-messenger
+</pre></div>
+</div>
+<p>Take care that <cite>&lt;your-configuration-directory&gt;</cite> is a directory in your docker host with your <cite>config.yaml</cite></p>
+</div>
+</div>
+<div class="section" id="create-your-own-environment">
+<h3>Create your own environment<a class="headerlink" href="#create-your-own-environment" title="Permalink to this headline">¶</a></h3>
+<p>Use this Dockerfile as an idea that you will need:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">FROM</span> <span class="n">ubuntu</span><span class="p">:</span><span class="n">latest</span>
+<span class="n">RUN</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">update</span> <span class="o">-</span><span class="n">y</span>
+<span class="n">RUN</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">upgrade</span> <span class="o">-</span><span class="n">y</span>
+<span class="n">RUN</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">python3</span><span class="o">.</span><span class="mi">8</span> <span class="n">python3</span><span class="o">-</span><span class="n">pip</span> <span class="n">python3</span><span class="o">.</span><span class="mi">8</span><span class="o">-</span><span class="n">dev</span> <span class="n">git</span> <span class="n">pandoc</span> <span class="o">-</span><span class="n">y</span>
+
+<span class="n">ENV</span> <span class="n">LC_ALL</span><span class="o">=</span><span class="n">C</span><span class="o">.</span><span class="n">UTF</span><span class="o">-</span><span class="mi">8</span>
+<span class="n">ENV</span> <span class="n">LANG</span><span class="o">=</span><span class="n">C</span><span class="o">.</span><span class="n">UTF</span><span class="o">-</span><span class="mi">8</span>
+
+<span class="c1">#RUN git clone https://github.com/guibos/gabriel-messenger.git /opt/gabriel-messenger</span>
+<span class="n">COPY</span> <span class="o">./</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">gabriel</span><span class="o">-</span><span class="n">messenger</span>
+<span class="n">WORKDIR</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">gabriel</span><span class="o">-</span><span class="n">messenger</span>
+
+<span class="n">RUN</span> <span class="n">pip3</span> <span class="n">install</span> <span class="n">pipenv</span>
+<span class="n">RUN</span> <span class="n">pipenv</span> <span class="n">install</span>
+
+<span class="n">ENTRYPOINT</span> <span class="p">[</span><span class="s2">&quot;pipenv&quot;</span><span class="p">,</span> <span class="s2">&quot;run&quot;</span><span class="p">,</span> <span class="s2">&quot;run&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Gabriel Messenger</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">QuickStart</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#create-configuration-file">Create configuration file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#create-application-environment">Create application environment</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="todo.html">TODO</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Gabriel Messenger</a></li>
+      <li>Next: <a href="documentation.html" title="next chapter">Documentation</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Guibos.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/quick_start.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
