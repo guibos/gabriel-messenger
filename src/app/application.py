@@ -36,7 +36,7 @@ class Application:
 
     def __init__(self, configuration: Configuration):
         files_directory = appdirs.user_data_dir(self._APP_NAME)
-        logger_configuration = configuration.get_global_configuration()['logger']
+        logger_configuration = configuration.get_global_configuration()['logging']['application']
         self._environment = configuration.get_global_configuration()['environment']
         self._loop = asyncio.get_event_loop()
         self._loop.add_signal_handler(signal.SIGINT, self._clean_shutdown)
@@ -53,6 +53,7 @@ class Application:
             logger_configuration=logger_configuration,
         )
         self._logger = Logger.get_logger(configuration=logger_configuration, name=self._APP_NAME, path=files_directory)
+        self._logger.info(f"Environment: {self._environment.value}")
 
     def _get_senders(self, *, config: Dict, loop: asyncio.AbstractEventLoop, configuration: Configuration,
                      logger_configuration: dict) -> Dict[str, Dict[str, TaskValueObject]]:
@@ -60,7 +61,6 @@ class Application:
             sender_name: self._get_sender_class(sender_name=sender_name).create_tasks_from_configuration(
                 configuration=sender_config,
                 loop=loop,
-                logging_level=configuration.get_global_configuration()['app_logging_level'],
                 app_name=self._APP_NAME,
                 environment=self._environment,
                 logger_configuration=logger_configuration,

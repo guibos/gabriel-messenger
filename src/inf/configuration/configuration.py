@@ -19,9 +19,7 @@ class Configuration:
     def __init__(self,
                  *,
                  config_path: Path = None,
-                 environment: Environment = None,
-                 app_logging_level: str = None,
-                 global_logging_level: str = None) -> None:
+                 environment: Environment = None) -> None:
         """Get a configuration object with a configuration file read."""
         self._config_path = config_path or self._CONFIG_PATH
         with open(self._config_path, 'r', encoding='utf-8') as file:
@@ -31,17 +29,6 @@ class Configuration:
             self._config['configuration']['environment'] = environment
         else:
             self._config['configuration']['environment'] = Environment(self._config['configuration']['environment'])
-
-        if app_logging_level:
-            self._config['configuration']['app_logging_level'] = app_logging_level
-        else:
-            self._config['configuration']['app_logging_level'] = self._config['configuration']['app_logging_level']
-
-        if global_logging_level:
-            self._config['configuration']['global_logging_level'] = global_logging_level
-        else:
-            self._config['configuration']['global_logging_level'] = self._config['configuration'][
-                'global_logging_level']
 
     def get_global_configuration(self) -> Dict[str, Union[str, Environment, dict]]:
         """Get a configuration section.

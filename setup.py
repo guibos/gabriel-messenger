@@ -19,32 +19,15 @@ def parse_args():
         choices=Environment.__members__.values(),
         help="Force environment. If you do not set this option, environment value from config.yaml will be loaded.")
 
-    parser.add_argument(
-        '--global-logging-level',
-        dest='global_logging_level',
-        nargs='?',
-        type=str,
-        choices=logging._nameToLevel.keys(),  # pylint: disable=protected-access
-        help="Force global logging level. If you do not set this option, global logging level value from config.yaml "
-        "will be loaded.")
-
-    parser.add_argument(
-        '--app-logging-level',
-        dest='app_logging_level',
-        nargs='?',
-        type=str,
-        choices=logging._nameToLevel.keys(),  # pylint: disable=protected-access
-        help="Force app logging level. If you do not set this option, app logging level value from config.yaml "
-        "will be loaded.")
-
     return vars(parser.parse_args())
 
 
 def run():
     """Run App."""
     configuration = Configuration(**parse_args())
-    logging.basicConfig(level=configuration.get_global_configuration()['global_logging_level'],
-                        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logging_configuration = configuration.get_global_configuration()['logging']['global']
+    logging.basicConfig(level=logging_configuration['level'],
+                        format=logging_configuration['fmt'])
     app = Application(configuration=configuration)
     app.run()
 
