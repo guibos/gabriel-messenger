@@ -5,7 +5,7 @@ from asyncio import Queue
 from bs4 import BeautifulSoup
 
 from src.inf.logger.itf.logger_interface import LoggerInterface
-from src.ser.common.data.weiss_schwarz_barcelona_data import BrigadaSOSData
+from src.ser.common.data.weiss_schwarz_barcelona_data import DaGameData
 from src.ser.common.enums.format_data import FormatData
 from src.ser.common.enums.language import Language
 from src.ser.common.queue_manager import QueueManager
@@ -16,7 +16,7 @@ from src.ser.ws_banner.data.config import Config
 from src.ser.ws_banner.models.identifier import METADATA, Identifier
 
 
-class WSBannerService(ReceiverImagesMixin, BrigadaSOSData):
+class WSBannerService(ReceiverImagesMixin, DaGameData):
     """Weiss Schwarz Banner service. This is a receiver service. Get all Banners os Weiss Schwarz."""
     MODULE = 'Weiß Schwarz - Banner'
     _EN_URL = 'https://en.ws-tcg.com'

@@ -19,6 +19,7 @@ tzlocal = "*"
 pypandoc = "*"
 pytz = "*"
 PyYaml = "*"
+webdriver_manager = "*"
 
 [dev-packages]
 pylint = "*"

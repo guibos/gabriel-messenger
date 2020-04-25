@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 from bs4.element import Tag
 
 from src.inf.logger.itf.logger_interface import LoggerInterface
-from src.ser.common.data.weiss_schwarz_barcelona_data import BrigadaSOSData
+from src.ser.common.data.weiss_schwarz_barcelona_data import DaGameData
 from src.ser.common.enums.format_data import FormatData
 from src.ser.common.enums.language import Language
 from src.ser.common.itf.publication import Publication
@@ -22,7 +22,7 @@ from src.ser.ws_today_card.data.config import Config
 from src.ser.ws_today_card.models.identifier import Identifier, METADATA
 
 
-class WSTodayCard(ReceiverMixin, BrigadaSOSData):
+class WSTodayCard(ReceiverMixin, DaGameData):
     """Weiss Schwarz today's card service. This is a receiver service. Get all today's card of Weiss Schwarz."""
     MODULE = "Weiß Schwarz - Today's card"
     _EN_URL = 'https://en.ws-tcg.com/products/ws_today'
