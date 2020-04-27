@@ -1,0 +1,19 @@
+aliases:
+  test:
+    senders: &test_sender
+      WhatsApp Web:
+        Guibos:
+          GTEST-1:
+            publication_data:
+              colour: 16711680
+              author:
+                name: 'Tester'
+                url: 'http://example.com'
+                icon_url: "hhttp://example.com/example.jpg"
+environment:
+  production:
+    receiver:
+      Blackfire:
+        - senders:
+            << :  [ *test_sender ]
+          ...

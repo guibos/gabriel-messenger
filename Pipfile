@@ -10,20 +10,22 @@ aiologger = "*"
 aiosmtplib = "*"
 aiosqlite = "*"
 appdirs = "*"
-arsenic = "*"
 beautifulsoup4 = "*"
+dataclasses-json = "*"
 discord = {py = "*"}
 html5lib = "*"
 orm = "==0.1.5"
+typing-extensions = "*"
 tzlocal = "*"
 pypandoc = "*"
+pyppeteer2 = "*"
 pytz = "*"
 PyYaml = "*"
-webdriver_manager = "*"
 
 [dev-packages]
 pylint = "*"
 sphinx = "*"
+sphinx-markdown-builder = "*"
 rinohtype = "*"
 yapf = "*"
 
@@ -31,5 +33,6 @@ yapf = "*"
 python_version = "3.8"
 
 [scripts]
-ci = "bash -c \"yapf -ir . && pylint --max-line-length 120 src setup.py \""
+lint = "bash -c \" pylint --max-line-length 120 src setup.py  \""
+ci = "bash -c \"(cd docs && make clean && make html) && yapf -ir . && pylint --max-line-length 120 src setup.py  \""
 run = "python setup.py"

@@ -1,47 +1,34 @@
 """Weiß Schwarz - Japanese Edition - Tournament Module"""
-
-from asyncio import Queue
-
+import orm
 from bs4 import BeautifulSoup
 
-from src.inf.logger.itf.logger_interface import LoggerInterface
-from src.ser.common.data.weiss_schwarz_barcelona_data import DaGameData
 from src.ser.common.enums.format_data import FormatData
-from src.ser.common.itf.custom_config import CustomConfig
-from src.ser.common.queue_manager import QueueManager
+from src.ser.common.itf.receiver_config import ReceiverConfig
+from src.ser.common.models.identifier_factory import identifier_factory
 from src.ser.common.receiver_images_mixin import ReceiverImagesMixin
 from src.ser.common.rich_text import RichText
+from src.ser.common.value_object.receiver_full_config import ReceiverFullConfig
 from src.ser.common.value_object.transacation_data import TransactionData
-from src.ser.ws_tournament_jp.models.identifier import Identifier, METADATA
 
 
-class WSTournamentJp(ReceiverImagesMixin, DaGameData):
+class WSTournamentJp(ReceiverImagesMixin):
     """Weiß Schwarz - Japanese Edition - Tournament. This is a receiver service.
     Get data of Japanese - Monthly Shop Tournament Cards."""
 
     MODULE = "Weiß Schwarz - Japanese Tournament"
-    MODEL_IDENTIFIER = Identifier
-    MODELS = (Identifier, )
-    MODELS_METADATA = METADATA
+    MODELS_METADATA, MODEL_IDENTIFIER, MODELS = identifier_factory(orm.Integer(primary_key=True))
 
     _FILENAME_UNIQUE = True
     _PUBLIC_URL = True
     _JP_URL = 'https://ws-tcg.com/events/list/battle_{}'
     _TITLE = "Japanese Edition - Monthly Shop Tournament Card"
+    _RECEIVER_CONFIG = ReceiverConfig
 
-    def __init__(self, *, files_directory: str, queue_manager: QueueManager, download_files: bool, wait_time: int,
-                 logger: LoggerInterface, state_change_queue: Queue, colour: int):
+    def __init__(self, receiver_full_config: ReceiverFullConfig):
 
         self._title = RichText(data=self._add_html_tag(self._TITLE, tag=self._TITLE_HTML_TAG),
                                format_data=FormatData.HTML)
-        super().__init__(download_files=download_files,
-                         files_directory=files_directory,
-                         colour=colour,
-                         author=self._AUTHOR,
-                         logger=logger,
-                         wait_time=wait_time,
-                         state_change_queue=state_change_queue,
-                         queue_manager=queue_manager)
+        super().__init__(receiver_full_config=receiver_full_config)
 
     async def _load_publications(self):
         if not self._cache:
@@ -66,13 +53,3 @@ class WSTournamentJp(ReceiverImagesMixin, DaGameData):
                                                                             rich_title=self._title))
             transaction_data = TransactionData(transaction_id=ws_id, publications=publications)
             await self._put_in_queue(transaction_data=transaction_data)
-
-    @classmethod
-    def _get_custom_configuration(cls, *, configuration, senders):
-        configurations = [
-            CustomConfig(
-                instance_name=cls._get_instance_name(),
-                queue_manager=cls._get_queue_manager(config=configuration['send'], senders=senders),
-            )
-        ]
-        return configurations

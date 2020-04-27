@@ -3,17 +3,19 @@
 import asyncio
 import os
 import pickle
+import re
 import traceback
 from abc import abstractmethod
 from asyncio import Queue, Task
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 import aiofiles
 import aiofiles.os
 
 from src.inf.logger.itf.logger_interface import LoggerInterface
 from src.inf.logger.logger import Logger
+from src.ser.common.abstract.attribute import AbstractAttribute
 from src.ser.common.enums.environment import Environment
 from src.ser.common.enums.state import State
 from src.ser.common.service_mixin import ServiceMixin
@@ -21,9 +23,10 @@ from src.ser.common.value_object.queue_data import QueueData
 from src.ser.common.value_object.task_value_object import TaskValueObject
 
 
-class SenderMixin(ServiceMixin):
+class SenderMixin(ServiceMixin):  # pylint: disable=too-few-public-methods
     """Sender Common Service Mixin. This mixin include methods required by senders services."""
-    _FAILED_PUBLICATIONS = 'failed_publciations'
+    _FAILED_PUBLICATIONS = 'failed-publications'
+    _REQUIRED_DOWNLOAD_FILES = AbstractAttribute()
 
     def __init__(self, state_change_queue: Queue, logger: LoggerInterface, publication_queue: Queue,
                  failed_publication_directory: str):
@@ -45,10 +48,8 @@ class SenderMixin(ServiceMixin):
             queue_data: QueueData = pickle.loads(data)
             try:
                 await self._load_publication(queue_data=queue_data)
-                # FIXME: this is not async currently aiofiles pypi version is not updated. Github version
-                #  include a wrapper.
-                os.remove(path)
-            except:
+                await aiofiles.os.remove(path)
+            except:  # pylint: disable=bare-except
                 self._logger.error(traceback.format_exc())
 
     async def _loop_manager(self):
@@ -71,7 +72,7 @@ class SenderMixin(ServiceMixin):
         queue_data: QueueData = await self._publication_queue.get()
         try:
             await self._load_publication(queue_data=queue_data)
-        except:
+        except:  # pylint: disable=bare-except
             self._logger.error(traceback.format_exc())
             file_path = os.path.join(self._failed_publication_directory, f'{datetime.now().isoformat()}.p')
             async with aiofiles.open(file_path, mode='wb') as file:
@@ -88,43 +89,47 @@ class SenderMixin(ServiceMixin):
         raise NotImplementedError
 
     @classmethod
-    def create_tasks_from_configuration(cls, *, configuration, loop, app_name: str,
-                                        environment: Environment, logger_configuration: dict):
+    def create_tasks_from_configuration(cls, *, configuration, loop, app_name: str, environment: Environment,
+                                        logger_configuration: dict):
         """Application will call this method to create tasks or only one task of each sender service. Application is the
         responsible to pass all necessary information or configuration to create these tasks."""
         repository_instances_value_objects = {}
-        directory_files = cls._get_repository_directory(app_name=app_name, environment=environment)
-        failed_publication_directory = cls._get_failed_publication_directory(app_name=app_name, environment=environment)
-        for key_name, configuration_item in configuration.items():
+
+        for instance_entry_name, instance_configuration in configuration['instances'].items():
+            instance_directory = cls._get_instance_directory(app_name=app_name,
+                                                             environment=environment,
+                                                             instance_name=instance_entry_name)
             publication_queue = Queue()
             state_change_queue = Queue()
 
-            instance_name = cls._get_instance_name(key_name)
-            logger = Logger.get_logger(configuration=logger_configuration, name=instance_name, path=directory_files)
+            instance_name = cls._get_instance_name(instance_entry_name)
+            logger = Logger.get_logger(configuration=logger_configuration, name=instance_name, path=instance_directory)
 
-            task = cls._create_task_from_configuration_custom(
-                configuration_item=configuration_item,
-                instance_name=instance_name,
-                loop=loop,
-                publication_queue=publication_queue,
+            task = cls._create_task_from_configuration_custom(instance_configuration=instance_configuration,
+                                                              instance_name=instance_name,
+                                                              loop=loop,
+                                                              publication_queue=publication_queue,
+                                                              state_change_queue=state_change_queue,
+                                                              failed_publication_directory=cls._get_sub_directory(
+                                                                  directory=instance_directory,
+                                                                  sub_directory=cls._FAILED_PUBLICATIONS),
+                                                              logger=logger,
+                                                              directory_files=instance_directory,
+                                                              configuration=configuration)
+
+            repository_instances_value_objects[instance_entry_name] = TaskValueObject(
+                name=instance_name,
                 state_change_queue=state_change_queue,
-                failed_publication_directory=failed_publication_directory,
-                logger=logger,
-            )
+                publication_queue=publication_queue,
+                task=task)
+        return repository_instances_value_objects, cls._REQUIRED_DOWNLOAD_FILES
 
-            repository_instances_value_objects[key_name] = TaskValueObject(name=instance_name,
-                                                                           state_change_queue=state_change_queue,
-                                                                           publication_queue=publication_queue,
-                                                                           task=task)
-        return repository_instances_value_objects
-
-    # pylint: disable=too-many-arguments
     @classmethod
     @abstractmethod
-    def _create_task_from_configuration_custom(cls, configuration_item: dict, instance_name: str,
+    def _create_task_from_configuration_custom(cls, instance_configuration: dict, instance_name: str,
                                                loop: asyncio.AbstractEventLoop, publication_queue: Queue,
-                                               state_change_queue: Queue,
-                                               failed_publication_directory: str, logger: LoggerInterface) -> Task:
+                                               state_change_queue: Queue, failed_publication_directory: str,
+                                               logger: LoggerInterface, **kwargs) -> Task:
         """Generate Task for a item in configuration."""
         raise NotImplementedError
 
@@ -133,9 +138,32 @@ class SenderMixin(ServiceMixin):
         raise NotImplementedError
 
     @classmethod
-    def _get_failed_publication_directory(cls, app_name: str, environment: Environment):
+    def _get_failed_publication_instance_directory(cls, app_name: str, environment: Environment, instance_name: str):
         """This return a path string, where it's possible to strore pickle """
-        repository_directory = cls._get_repository_directory(app_name=app_name, environment=environment)
+        repository_directory = cls._get_instance_directory(app_name=app_name,
+                                                           environment=environment,
+                                                           instance_name=instance_name)
         failed_publication_directory = os.path.join(repository_directory, cls._FAILED_PUBLICATIONS)
         os.makedirs(failed_publication_directory, exist_ok=True)
         return failed_publication_directory
+
+    @staticmethod
+    async def _get_text_chunks(text: str, max_length: int) -> List[str]:
+        final = []
+        previous_text = ''
+        for paragraph in re.split(r'(\n)', text):
+            if (len(previous_text) + len(paragraph)) > max_length:
+                final.append(previous_text)
+                previous_text = ''
+
+            if len(paragraph) < max_length:
+                previous_text = previous_text + paragraph
+            else:
+                for word in re.split(r'( )', paragraph):
+                    if (len(previous_text) + len(word)) > max_length:
+                        final.append(previous_text)
+                        previous_text = ''
+                    else:
+                        previous_text = previous_text + word
+        final.append(previous_text)
+        return final

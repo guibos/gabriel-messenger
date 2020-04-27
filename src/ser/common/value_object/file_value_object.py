@@ -4,13 +4,17 @@ from dataclasses import dataclass
 from typing import Optional
 
 
+class NotPathOrPublicURL(Exception):
+    """Not configured public_url or path."""
+
+
 @dataclass
 class FileValueObject:
     """This value object is abstraction how app need to interact with a file. It's possible that is only available on
     file system or a public url."""
-    public_url: str = None
+    public_url: Optional[str] = None
     path: Optional[str] = None
-    pretty_name: str = None
+    pretty_name: Optional[str] = None
 
     @property
     def pretty_filename(self):
@@ -21,7 +25,12 @@ class FileValueObject:
             else:
                 extension = os.path.basename(self.public_url).split('.')[1]
             return f"{self.pretty_name}.{extension}"
-        return os.path.basename(self.public_url)
+        elif self.public_url:
+            return os.path.basename(self.public_url)
+        elif self.path:
+            return os.path.basename(self.path)
+        else:
+            raise NotPathOrPublicURL("Not configured public_url or path.")
 
     @property
     def filename(self):

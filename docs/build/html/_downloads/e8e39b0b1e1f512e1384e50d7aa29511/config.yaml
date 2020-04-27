@@ -1,0 +1,51 @@
+configuration:
+  environment: test
+  logging:
+    global:
+      level: "WARNING"
+      fmt: "%(asctime)s %(process)d %(levelname)-8s %(name)s %(message)s"
+    application:
+      stream:
+        formatter:
+          fmt: "%(asctime)s %(process)d %(levelname)-8s %(name)s %(message)s"
+        level: "INFO"
+      smtp:
+        formatter:
+          fmt: "%(asctime)s %(process)d %(levelname)-8s %(name)s %(message)s"
+        level: "ERROR"
+        sender: "username@domain.tld"
+        recipients: ["username@domain.tld"]
+        subject: "Subject"
+        username: "username"
+        password: "password"
+        hostname: 'serverhostname'
+        port: 465
+        use_tls: True
+      file:
+
+environment:
+  production:
+    sender:
+      WhatsApp Web:
+        headless: false
+        instances:
+          Guibos:
+  test:
+    sender:
+      WhatsApp Web:
+        headless: false
+        instances:
+          Guibos:
+    receiver:
+      Recycler:
+        - senders:
+          WhatsApp Web:
+            Guibos:
+              channel-name:
+                publication_data:
+                  colour: 16711680
+          module_config:
+            wait_time: 20
+            publications:
+              - publication_id: 1
+                title: {format_data: markdown, data: '# Title'}

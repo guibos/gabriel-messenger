@@ -2,7 +2,7 @@
 
 from asyncio import Queue
 from dataclasses import dataclass
-from typing import Union
+from typing import Union, Any, Dict
 
 
 @dataclass
@@ -11,3 +11,4 @@ class QueueContext:
     data."""
     publication_queue: Queue
     channel: Union[str, int]
+    publication_data: Dict[str, Any]

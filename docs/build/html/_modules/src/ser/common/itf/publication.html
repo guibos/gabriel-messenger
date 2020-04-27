@@ -37,38 +37,64 @@
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">field</span><span class="p">,</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 
+<span class="kn">from</span> <span class="nn">dataclasses_json</span> <span class="kn">import</span> <span class="n">dataclass_json</span>
+
+<span class="kn">from</span> <span class="nn">src.ser.common.enums.format_data</span> <span class="kn">import</span> <span class="n">FormatData</span>
+<span class="kn">from</span> <span class="nn">src.ser.common.itf.custom_fields</span> <span class="kn">import</span> <span class="n">CustomFields</span>
 <span class="kn">from</span> <span class="nn">src.ser.common.rich_text</span> <span class="kn">import</span> <span class="n">RichText</span>
 <span class="kn">from</span> <span class="nn">src.ser.common.value_object.author</span> <span class="kn">import</span> <span class="n">Author</span>
 <span class="kn">from</span> <span class="nn">src.ser.common.value_object.file_value_object</span> <span class="kn">import</span> <span class="n">FileValueObject</span>
 
 
-<span class="c1"># pylint: disable=too-many-instance-attributes</span>
-<div class="viewcode-block" id="Publication"><a class="viewcode-back" href="../../../../../documentation.html#src.ser.common.itf.publication.Publication">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="Publication"><a class="viewcode-back" href="../../../../../developer.html#src.ser.common.itf.publication.Publication">[docs]</a><span class="nd">@dataclass_json</span>
+<span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Publication</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Publication Interface. Is the base to create another dataclass that will be used to share publications between</span>
 <span class="sd">    services.&quot;&quot;&quot;</span>
-    <span class="n">publication_id</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+    <span class="n">publication_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">title</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">RichText</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">description</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">RichText</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">timestamp</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">color</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">colour</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">images</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileValueObject</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileValueObject</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">author</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Author</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">custom_fields</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">custom_fields</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">CustomFields</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">markdown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Markdown output.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;*</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="si">}</span><span class="s2">*</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="k">def</span> <span class="nf">to_format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">format_data</span><span class="p">:</span> <span class="n">FormatData</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Output all publication to specific format.&quot;&quot;&quot;</span>
+        <span class="n">rich_items</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+        <span class="p">]</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">text</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Plain text output.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{self.title}</span><span class="s2">*</span><span class="se">\n</span><span class="s2">&quot;</span></div>
+        <span class="n">non_rich_item</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;URL&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="n">to_print</span> <span class="o">=</span> <span class="p">[</span><span class="n">rich_text</span><span class="o">.</span><span class="n">to_format</span><span class="p">(</span><span class="n">format_data</span><span class="o">=</span><span class="n">format_data</span><span class="p">)</span> <span class="k">for</span> <span class="n">rich_text</span> <span class="ow">in</span> <span class="n">rich_items</span> <span class="k">if</span> <span class="n">rich_text</span><span class="p">]</span>
+
+        <span class="n">to_print</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_kv_to_print</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">format_data</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">non_rich_item</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">value</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">custom_fields</span><span class="p">:</span>
+            <span class="n">to_print</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_field_to_print</span><span class="p">(</span><span class="n">c_field</span><span class="p">,</span> <span class="n">format_data</span><span class="p">)</span> <span class="k">for</span> <span class="n">c_field</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">custom_fields</span> <span class="k">if</span> <span class="n">c_field</span><span class="p">])</span>
+
+        <span class="n">rich_text</span> <span class="o">=</span> <span class="n">RichText</span><span class="p">(</span><span class="s1">&#39;&lt;p&gt;error&lt;br/&gt;error&lt;/p&gt;&#39;</span><span class="p">,</span> <span class="n">format_data</span><span class="o">=</span><span class="n">FormatData</span><span class="o">.</span><span class="n">HTML</span><span class="p">)</span>
+        <span class="n">line_feed</span> <span class="o">=</span> <span class="n">rich_text</span><span class="o">.</span><span class="n">to_format</span><span class="p">(</span><span class="n">format_data</span><span class="o">=</span><span class="n">format_data</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">line_feed</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">to_print</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_field_to_print</span><span class="p">(</span><span class="n">c_field</span><span class="p">,</span> <span class="n">format_data</span><span class="p">:</span> <span class="n">FormatData</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">RichText</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;***</span><span class="si">{</span><span class="n">c_field</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">:*** </span><span class="si">{</span><span class="n">c_field</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                        <span class="n">format_data</span><span class="o">=</span><span class="n">FormatData</span><span class="o">.</span><span class="n">MARKDOWN</span><span class="p">)</span><span class="o">.</span><span class="n">to_format</span><span class="p">(</span><span class="n">format_data</span><span class="o">=</span><span class="n">format_data</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_kv_to_print</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">format_data</span><span class="p">:</span> <span class="n">FormatData</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">RichText</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;***</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">:*** </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">format_data</span><span class="o">=</span><span class="n">FormatData</span><span class="o">.</span><span class="n">MARKDOWN</span><span class="p">)</span><span class="o">.</span><span class="n">to_format</span><span class="p">(</span><span class="n">format_data</span><span class="o">=</span><span class="n">format_data</span><span class="p">)</span></div>
 </pre></div>
 
           </div>
@@ -90,6 +116,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../quick_start.html">QuickStart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../documentation.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../modules.html">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../developer.html">Developer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../todo.html">TODO</a></li>
 </ul>
 
@@ -128,7 +156,7 @@
       &copy;2020, Guibos.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

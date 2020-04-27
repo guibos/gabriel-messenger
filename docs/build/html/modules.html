@@ -1,0 +1,332 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Modules &#8212; Gabriel Messenger 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Developer" href="developer.html" />
+    <link rel="prev" title="Documentation" href="documentation.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="modules">
+<h1>Modules<a class="headerlink" href="#modules" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="sender-services">
+<h2>Sender Services<a class="headerlink" href="#sender-services" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="whatsapp-web">
+<h3>WhatsApp Web<a class="headerlink" href="#whatsapp-web" title="Permalink to this headline">¶</a></h3>
+<p>WhatsApp Web Module uses WhatsApp Web service to communicate with your cellphone through a web browser.</p>
+<p>Do not use this module if you need high availability. If you require high availability see:
+<a class="reference external" href="https://www.whatsapp.com/business/api">WhatsApp API</a>. This module is subject to problems of all kinds.
+This module is intended for those individuals, companies or associations that cannot cover the expenses of
+<a class="reference external" href="https://www.whatsapp.com/business/api">WhatsApp API</a>.</p>
+<div class="section" id="features">
+<h4>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h4>
+<p>This module allow:</p>
+<ul class="simple">
+<li><p>Send text messages</p></li>
+<li><p>Send images</p></li>
+<li><p>Send files</p></li>
+<li><p>Send with different cellphone numbers.</p></li>
+</ul>
+<p>This module not allow:</p>
+<ul class="simple">
+<li><p>Send videos</p></li>
+</ul>
+</div>
+<div class="section" id="configuration">
+<h4>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">environment</span><span class="p">:</span>
+  <span class="n">production</span><span class="p">:</span>
+    <span class="n">sender</span><span class="p">:</span>
+      <span class="n">WhatsApp</span> <span class="n">Web</span><span class="p">:</span>
+        <span class="n">headless</span><span class="p">:</span> <span class="n">true</span>
+        <span class="n">instances</span><span class="p">:</span>
+          <span class="n">Guibos</span><span class="p">:</span>
+          <span class="n">Gabriel</span><span class="p">:</span>
+</pre></div>
+</div>
+<p>“Guibos” and “Gabriel” will be different instance of WhatsApp Web module. Previous key don’t have any special meaning.
+These keys are used by Receiver Services to discriminate different instances. Each instance will have his own web
+browser configuration. In each instance you must add QR code on startup. For now you will disable headless mode to add
+new. Each instance must have configured different cellphone numbers.</p>
+</div>
+<div class="section" id="technical-notes">
+<h4>Technical Notes<a class="headerlink" href="#technical-notes" title="Permalink to this headline">¶</a></h4>
+<p>This module uses <a class="reference external" href="https://github.com/pyppeteer/pyppeteer2">pyppeteer2</a>. This library is async, that work with
+chromium browser. <a class="reference external" href="https://github.com/pyppeteer/pyppeteer2">Pyppeteer2</a> controls chromium browser through
+<a class="reference external" href="https://www.w3.org/TR/2009/WD-websockets-20091222/">websockets</a>.
+This module simulate what is doing a person when he interact with WhatsApp Web. To chose a html element,
+<a class="reference external" href="https://www.w3.org/TR/selectors-api/">selectors</a> are used.</p>
+</div>
+<div class="section" id="class">
+<h4>Class<a class="headerlink" href="#class" title="Permalink to this headline">¶</a></h4>
+<dl class="py class">
+<dt id="src.ser.whats_app_web.service.WhatsAppWebService">
+<em class="property">class </em><code class="sig-prename descclassname">src.ser.whats_app_web.service.</code><code class="sig-name descname">WhatsAppWebService</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">publication_queue</span><span class="p">:</span> <span class="n">asyncio.queues.Queue</span></em>, <em class="sig-param"><span class="n">state_change_queue</span><span class="p">:</span> <span class="n">asyncio.queues.Queue</span></em>, <em class="sig-param"><span class="n">logger</span><span class="p">:</span> <span class="n">src.inf.logger.itf.logger_interface.LoggerInterface</span></em>, <em class="sig-param"><span class="n">failed_publication_directory</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/ser/whats_app_web/service.html#WhatsAppWebService"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.ser.whats_app_web.service.WhatsAppWebService" title="Permalink to this definition">¶</a></dt>
+<dd><p>WhatsApp Web Client.</p>
+<dl class="py method">
+<dt id="src.ser.whats_app_web.service.WhatsAppWebService.run">
+<em class="property">async </em><code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_directory</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">headless</span><span class="p">:</span> <span class="n">bool</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/ser/whats_app_web/service.html#WhatsAppWebService.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.ser.whats_app_web.service.WhatsAppWebService.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run service</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="flowchart">
+<h4>Flowchart<a class="headerlink" href="#flowchart" title="Permalink to this headline">¶</a></h4>
+<div class="graphviz"><img src="_images/graphviz-e2321aec444a51fd54dfb7644496b0cab16ed0e7.png" alt="digraph process {
+    get_publication [label=&quot;Get publication from queue&quot;];
+    deep_copy [label=&quot;Create a deep copy from Publication&quot;];
+    clean_channel [label=&quot;Clean text of search channel&quot;];
+    type_channel [label=&quot;Type channel name \n into Search Box&quot;];
+    click_channel [label=&quot;Click channel&quot;];
+    there_are_files [label=&quot;There are files?&quot;];
+    attach_file [label=&quot;Attach file&quot;];
+    send_file [label=&quot;Send File&quot;];
+    there_are_images [label=&quot;There are images?,\n except the first one&quot;];
+    attach_image [label=&quot;Attach File&quot;];
+    send_image [label=&quot;Send Image&quot;];
+    there_are_first_image_text [label=&quot;There are first image\n or text to send?&quot;];
+    there_are_first_image [label=&quot;There are first image?&quot;];
+    attach_first_image [label=&quot;Attach image&quot;];
+    there_are_text [label=&quot;There are text?&quot;];
+    type_text [label=&quot;Type text&quot;];
+    send_message [label=&quot;Send message&quot;];
+    raised_exception [label=&quot;Raised Exception&quot;];
+    session_closed [label=&quot;Session Closed: User closed session \n from his cellphone or session is expired&quot;];
+    another_usage [label=&quot;WhatsApp is open in another window: \n User is using WhatsApp Web&quot;];
+
+    get_publication -&gt; deep_copy;
+    deep_copy -&gt; clean_channel;
+    raised_exception -&gt; session_closed;
+    raised_exception -&gt; another_usage;
+    another_usage -&gt; clean_channel [label=&quot;Re:Zero&quot;];
+    session_closed -&gt; clean_channel [label=&quot;Re:Zero&quot;];
+    clean_channel -&gt; type_channel;
+    type_channel -&gt; raised_exception [label=&quot;error&quot;];
+    type_channel -&gt; click_channel;
+    click_channel -&gt; raised_exception [label=&quot;error&quot;];
+    click_channel -&gt; there_are_images;
+    there_are_images -&gt; attach_image [label=yes];
+    attach_image -&gt; raised_exception [label=error];
+    attach_image -&gt; send_image;
+    send_image -&gt; remove_image;
+    remove_image -&gt; there_are_images;
+    there_are_images -&gt; there_are_first_image_text;
+    there_are_first_image_text -&gt; get_publication [label=no];
+    there_are_first_image_text -&gt; there_are_first_image [label=yes];
+    there_are_first_image -&gt; attach_first_image [label=yes];
+    there_are_first_image -&gt; there_are_text [label=no];
+    attach_first_image -&gt; raised_exception [label=&quot;error&quot;];
+    attach_first_image -&gt; there_are_text;
+    there_are_text -&gt; type_text [label=&quot;yes&quot;];
+    there_are_text -&gt; send_message [label=no];
+    type_text -&gt; raised_exception [label=error];
+    type_text -&gt; send_message;
+    send_message -&gt; raised_exception [label=error];
+    send_message -&gt; there_are_files;
+    there_are_files -&gt; attach_file [label=yes];
+    attach_file -&gt; raised_exception [label=error];
+    attach_file -&gt; send_file;
+    send_file -&gt; remove_file;
+    remove_file -&gt; there_are_files;
+    there_are_files -&gt; get_publication [label=&quot;Publication sent&quot;];
+}" class="graphviz" /></div>
+</div>
+</div>
+</div>
+<div class="section" id="receiver-services">
+<h2>Receiver Services<a class="headerlink" href="#receiver-services" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="recycler">
+<h3>Recycler<a class="headerlink" href="#recycler" title="Permalink to this headline">¶</a></h3>
+<p>Recycler service get publications from config and send one of them between time specified in <cite>wait_time</cite> field. Take
+care that <em>Recycler Service</em> create a instance for each of items of the main list. So you can send different
+publications to different <em>Senders Services</em> and different recipients.</p>
+<div class="section" id="id3">
+<h4>Configuration<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">environment</span><span class="p">:</span>
+  <span class="n">production</span><span class="p">:</span>
+    <span class="n">receiver</span><span class="p">:</span>
+      <span class="n">Recycler</span><span class="p">:</span>
+        <span class="o">-</span> <span class="n">senders</span><span class="p">:</span>
+            <span class="n">Discord</span><span class="p">:</span>
+              <span class="n">publisher</span><span class="p">:</span>
+                <span class="mi">000</span><span class="p">:</span>
+                  <span class="n">publication_data</span><span class="p">:</span>
+                    <span class="n">colour</span><span class="p">:</span> <span class="mi">16711680</span>
+                    <span class="n">author</span><span class="p">:</span>
+                      <span class="n">name</span><span class="p">:</span> <span class="s1">&#39;Example&#39;</span>
+                      <span class="n">url</span><span class="p">:</span> <span class="s1">&#39;https://example.com&#39;</span>
+                      <span class="n">icon_url</span><span class="p">:</span> <span class="s2">&quot;https://example.com/example.jpg&quot;</span>
+            <span class="n">WhatsApp</span> <span class="n">Web</span><span class="p">:</span>
+              <span class="n">Guibos</span><span class="p">:</span>
+                <span class="n">Channel</span><span class="p">:</span>
+                  <span class="n">publication_data</span><span class="p">:</span>
+                    <span class="n">colour</span><span class="p">:</span> <span class="mi">16711680</span>
+                    <span class="n">author</span><span class="p">:</span>
+                      <span class="n">name</span><span class="p">:</span> <span class="s1">&#39;Example&#39;</span>
+                      <span class="n">url</span><span class="p">:</span> <span class="s1">&#39;https://example.com&#39;</span>
+                      <span class="n">icon_url</span><span class="p">:</span> <span class="s2">&quot;https://example.com/example.jpg&quot;</span>
+          <span class="n">module_config</span><span class="p">:</span>
+            <span class="n">wait_time</span><span class="p">:</span> <span class="mi">20</span>
+            <span class="n">publications</span><span class="p">:</span>
+              <span class="o">-</span> <span class="n">publication_id</span><span class="p">:</span> <span class="mi">1</span>
+                <span class="n">title</span><span class="p">:</span> <span class="p">{</span><span class="n">format_data</span><span class="p">:</span> <span class="n">markdown</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="s1">&#39;Na, na, na, na, na, na, na&#39;</span><span class="p">}</span>
+                <span class="n">description</span><span class="p">:</span> <span class="p">{</span><span class="n">format_data</span><span class="p">:</span> <span class="n">markdown</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="s1">&#39;Na, na, na, na, na, na, na&#39;</span><span class="p">}</span>
+                <span class="n">url</span><span class="p">:</span> <span class="s1">&#39;http://example.com&#39;</span>
+                <span class="n">timestamp</span><span class="p">:</span> <span class="s1">&#39;2000-01-01T00:00:00&#39;</span>
+                <span class="n">colour</span><span class="p">:</span> <span class="mi">0</span>
+                <span class="n">images</span><span class="p">:</span>
+                  <span class="o">-</span> <span class="n">path</span><span class="p">:</span> <span class="s1">&#39;image1.jpg&#39;</span>
+                  <span class="o">-</span> <span class="n">path</span><span class="p">:</span> <span class="s1">&#39;image2.jpg&#39;</span>
+                <span class="n">files</span><span class="p">:</span>
+                  <span class="o">-</span> <span class="n">path</span><span class="p">:</span> <span class="s1">&#39;file1.pdf&#39;</span>
+                  <span class="o">-</span> <span class="n">path</span><span class="p">:</span> <span class="s1">&#39;file1.zip&#39;</span>
+                <span class="n">author</span><span class="p">:</span>
+                  <span class="n">name</span><span class="p">:</span> <span class="s1">&#39;Example&#39;</span>
+                  <span class="n">url</span><span class="p">:</span> <span class="s1">&#39;https://example.com&#39;</span>
+                  <span class="n">icon_url</span><span class="p">:</span> <span class="s2">&quot;https://example.com/example.jpg&quot;</span>
+              <span class="o">-</span> <span class="n">publication_id</span><span class="p">:</span> <span class="mi">2</span>
+                <span class="n">title</span><span class="p">:</span> <span class="p">{</span><span class="n">format_data</span><span class="p">:</span> <span class="n">markdown</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="s1">&#39;Na, na, na, na, na, na, na&#39;</span><span class="p">}</span>
+        <span class="o">-</span> <span class="n">senders</span><span class="p">:</span>
+            <span class="n">Discord</span><span class="p">:</span>
+              <span class="n">publisher</span><span class="p">:</span>
+                <span class="mi">000</span><span class="p">:</span>
+                  <span class="n">publication_data</span><span class="p">:</span>
+                    <span class="n">colour</span><span class="p">:</span> <span class="mi">16711680</span>
+                    <span class="n">author</span><span class="p">:</span>
+                      <span class="n">name</span><span class="p">:</span> <span class="s1">&#39;Example&#39;</span>
+                      <span class="n">url</span><span class="p">:</span> <span class="s1">&#39;https://example.com&#39;</span>
+                      <span class="n">icon_url</span><span class="p">:</span> <span class="s2">&quot;https://example.com/example.jpg&quot;</span>
+            <span class="n">module_config</span><span class="p">:</span>
+              <span class="n">wait_time</span><span class="p">:</span> <span class="mi">20</span>
+              <span class="n">publications</span><span class="p">:</span>
+                <span class="o">-</span> <span class="n">publication_id</span><span class="p">:</span> <span class="mi">2</span>
+                  <span class="n">title</span><span class="p">:</span> <span class="p">{</span><span class="n">format_data</span><span class="p">:</span> <span class="n">markdown</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="s1">&#39;Na, na, na, na, na, na, na&#39;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Module config have a list of publications. Is not necessary to complete all fields.</p>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Gabriel Messenger</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">QuickStart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">Documentation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Modules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#sender-services">Sender Services</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#whatsapp-web">WhatsApp Web</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#features">Features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#configuration">Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#technical-notes">Technical Notes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#class">Class</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#flowchart">Flowchart</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#receiver-services">Receiver Services</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#recycler">Recycler</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id3">Configuration</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer.html">Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="todo.html">TODO</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="documentation.html" title="previous chapter">Documentation</a></li>
+      <li>Next: <a href="developer.html" title="next chapter">Developer</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Guibos.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/modules.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
