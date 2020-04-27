@@ -1,0 +1,59 @@
+environment:
+  production:
+    receiver:
+      Recycler:
+        - senders:
+            Discord:
+              publisher:
+                000:
+                  publication_data:
+                    colour: 16711680
+                    author:
+                      name: 'Example'
+                      url: 'https://example.com'
+                      icon_url: "https://example.com/example.jpg"
+            WhatsApp Web:
+              Guibos:
+                Channel:
+                  publication_data:
+                    colour: 16711680
+                    author:
+                      name: 'Example'
+                      url: 'https://example.com'
+                      icon_url: "https://example.com/example.jpg"
+          module_config:
+            wait_time: 20
+            publications:
+              - publication_id: 1
+                title: {format_data: markdown, data: 'Na, na, na, na, na, na, na'}
+                description: {format_data: markdown, data: 'Na, na, na, na, na, na, na'}
+                url: 'http://example.com'
+                timestamp: '2000-01-01T00:00:00'
+                colour: 0
+                images:
+                  - path: 'image1.jpg'
+                  - path: 'image2.jpg'
+                files:
+                  - path: 'file1.pdf'
+                  - path: 'file1.zip'
+                author:
+                  name: 'Example'
+                  url: 'https://example.com'
+                  icon_url: "https://example.com/example.jpg"
+              - publication_id: 2
+                title: {format_data: markdown, data: 'Na, na, na, na, na, na, na'}
+        - senders:
+            Discord:
+              publisher:
+                000:
+                  publication_data:
+                    colour: 16711680
+                    author:
+                      name: 'Example'
+                      url: 'https://example.com'
+                      icon_url: "https://example.com/example.jpg"
+            module_config:
+              wait_time: 20
+              publications:
+                - publication_id: 2
+                  title: {format_data: markdown, data: 'Na, na, na, na, na, na, na'}

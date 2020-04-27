@@ -1,0 +1,196 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Developer &#8212; Gabriel Messenger 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="TODO" href="todo.html" />
+    <link rel="prev" title="Modules" href="modules.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="developer">
+<h1>Developer<a class="headerlink" href="#developer" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="architecture">
+<h2>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
+<p>You will need to implement your new service with this architecture:</p>
+<div class="graphviz"><img src="_images/graphviz-746d7fa34bee7369d03e186a9c1f21a954771958.png" alt="digraph Workflow {
+
+     &quot;ServiceMixin&quot; -&gt; &quot;ReceiverMixin&quot;
+     &quot;ServiceMixin&quot; -&gt; &quot;SenderMixin&quot;
+     &quot;ReceiverMixin&quot; -&gt; &quot;NewReceiverService&quot;
+     &quot;SenderMixin&quot; -&gt; &quot;NewSenderService&quot;
+}" class="graphviz" /></div>
+</div>
+<div class="section" id="main-classes">
+<h2>Main Classes<a class="headerlink" href="#main-classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="interfaces">
+<h3>Interfaces<a class="headerlink" href="#interfaces" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="src.ser.common.itf.publication.Publication">
+<em class="property">class </em><code class="sig-prename descclassname">src.ser.common.itf.publication.</code><code class="sig-name descname">Publication</code><span class="sig-paren">(</span><em class="sig-param">publication_id: Union[int</em>, <em class="sig-param">str</em>, <em class="sig-param">None] = None</em>, <em class="sig-param">title: Optional[src.ser.common.rich_text.RichText] = None</em>, <em class="sig-param">description: Optional[src.ser.common.rich_text.RichText] = None</em>, <em class="sig-param">url: Optional[str] = None</em>, <em class="sig-param">timestamp: Optional[datetime.datetime] = None</em>, <em class="sig-param">colour: Optional[int] = None</em>, <em class="sig-param">images: List[src.ser.common.value_object.file_value_object.FileValueObject] = &lt;factory&gt;</em>, <em class="sig-param">files: List[src.ser.common.value_object.file_value_object.FileValueObject] = &lt;factory&gt;</em>, <em class="sig-param">author: Optional[src.ser.common.value_object.author.Author] = None</em>, <em class="sig-param">custom_fields: Optional[src.ser.common.itf.custom_fields.CustomFields] = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/ser/common/itf/publication.html#Publication"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.ser.common.itf.publication.Publication" title="Permalink to this definition">¶</a></dt>
+<dd><p>Publication Interface. Is the base to create another dataclass that will be used to share publications between
+services.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="mixins">
+<h3>Mixins<a class="headerlink" href="#mixins" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="src.ser.common.service_mixin.ServiceMixin">
+<em class="property">class </em><code class="sig-prename descclassname">src.ser.common.service_mixin.</code><code class="sig-name descname">ServiceMixin</code><a class="reference internal" href="_modules/src/ser/common/service_mixin.html#ServiceMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.ser.common.service_mixin.ServiceMixin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Common Service Mixin. This class includes methods that required by senders services and receivers services.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="src.ser.common.receiver_mixin.ReceiverMixin">
+<em class="property">class </em><code class="sig-prename descclassname">src.ser.common.receiver_mixin.</code><code class="sig-name descname">ReceiverMixin</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">receiver_full_config</span><span class="p">:</span> <span class="n">src.ser.common.value_object.receiver_full_config.ReceiverFullConfig</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/ser/common/receiver_mixin.html#ReceiverMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.ser.common.receiver_mixin.ReceiverMixin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receiver Common Service Mixin. This mixin include methods required by receivers services.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="src.ser.common.sender_mixin.SenderMixin">
+<em class="property">class </em><code class="sig-prename descclassname">src.ser.common.sender_mixin.</code><code class="sig-name descname">SenderMixin</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state_change_queue</span><span class="p">:</span> <span class="n">asyncio.queues.Queue</span></em>, <em class="sig-param"><span class="n">logger</span><span class="p">:</span> <span class="n">src.inf.logger.itf.logger_interface.LoggerInterface</span></em>, <em class="sig-param"><span class="n">publication_queue</span><span class="p">:</span> <span class="n">asyncio.queues.Queue</span></em>, <em class="sig-param"><span class="n">failed_publication_directory</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/ser/common/sender_mixin.html#SenderMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.ser.common.sender_mixin.SenderMixin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sender Common Service Mixin. This mixin include methods required by senders services.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="enums">
+<h3>Enums<a class="headerlink" href="#enums" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="src.ser.common.enums.environment.Environment">
+<em class="property">class </em><code class="sig-prename descclassname">src.ser.common.enums.environment.</code><code class="sig-name descname">Environment</code><a class="reference internal" href="_modules/src/ser/common/enums/environment.html#Environment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.ser.common.enums.environment.Environment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Environment enum.</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="run-application">
+<h3>Run application<a class="headerlink" href="#run-application" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pipenv run run
+</pre></div>
+</div>
+</div>
+<div class="section" id="force-environment">
+<h3>Force environment<a class="headerlink" href="#force-environment" title="Permalink to this headline">¶</a></h3>
+<p>You can switch your environment without changing your configuration file. See next code:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pipenv run run --environment &lt;environment&gt;
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Gabriel Messenger</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">QuickStart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Modules</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Developer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#architecture">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#main-classes">Main Classes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#interfaces">Interfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mixins">Mixins</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#enums">Enums</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#run-application">Run application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#force-environment">Force environment</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="todo.html">TODO</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="modules.html" title="previous chapter">Modules</a></li>
+      <li>Next: <a href="todo.html" title="next chapter">TODO</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Guibos.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/developer.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

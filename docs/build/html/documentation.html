@@ -15,7 +15,7 @@
     <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="TODO" href="todo.html" />
+    <link rel="next" title="Modules" href="modules.html" />
     <link rel="prev" title="QuickStart" href="quick_start.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -47,7 +47,7 @@
 </li>
 <li><p><strong>Task</strong>: Tasks are used to schedule coroutines concurrently. See: <a class="reference external" href="https://docs.python.org/3/library/asyncio-task.html">asyncio task</a>.</p>
 <ul>
-<li><p>All services will generate a task to perform his functionality.</p></li>
+<li><p>All services will generate one or more task (normally one) to perform his functionality.</p></li>
 <li><p>Other tasks: to manage state of services. Currently only to perform shutdown of all services. See next code:</p></li>
 </ul>
 </li>
@@ -87,80 +87,6 @@ shutdown.</p>
 }" class="graphviz" /></div>
 <p>Each <strong>receiver Service</strong> download data from external resource, create publications with this data and send this publications to each queue configured. One queue, one <em>Sender Service</em>. Sender get publications from his queue and send to external resource.</p>
 </div>
-<div class="section" id="develop-your-own-service">
-<h2>Develop your own service<a class="headerlink" href="#develop-your-own-service" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="publication">
-<h3>Publication<a class="headerlink" href="#publication" title="Permalink to this headline">¶</a></h3>
-<dl class="py class">
-<dt id="src.ser.common.itf.publication.Publication">
-<em class="property">class </em><code class="sig-prename descclassname">src.ser.common.itf.publication.</code><code class="sig-name descname">Publication</code><span class="sig-paren">(</span><em class="sig-param">publication_id: Union[str, int], title: Optional[src.ser.common.rich_text.RichText] = None, description: Optional[src.ser.common.rich_text.RichText] = None, url: Optional[str] = None, timestamp: Optional[datetime.datetime] = None, color: Optional[int] = None, images: List[src.ser.common.value_object.file_value_object.FileValueObject] = &lt;factory&gt;, files: List[src.ser.common.value_object.file_value_object.FileValueObject] = &lt;factory&gt;, author: Optional[src.ser.common.value_object.author.Author] = None, custom_fields: Optional[Any] = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/ser/common/itf/publication.html#Publication"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.ser.common.itf.publication.Publication" title="Permalink to this definition">¶</a></dt>
-<dd><p>Publication Interface. Is the base to create another dataclass that will be used to share publications between
-services.</p>
-<dl class="py method">
-<dt id="src.ser.common.itf.publication.Publication.markdown">
-<em class="property">property </em><code class="sig-name descname">markdown</code><a class="headerlink" href="#src.ser.common.itf.publication.Publication.markdown" title="Permalink to this definition">¶</a></dt>
-<dd><p>Markdown output.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="src.ser.common.itf.publication.Publication.text">
-<em class="property">property </em><code class="sig-name descname">text</code><a class="headerlink" href="#src.ser.common.itf.publication.Publication.text" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plain text output.</p>
-</dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="architecture">
-<h3>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h3>
-<p>You will need to implement your new service with this architecture:</p>
-<div class="graphviz"><img src="_images/graphviz-92dc3e2aa2f2aa3199de43b067a1c2e905d07c75.png" alt="digraph Workflow {
-     &quot;ServiceInterface&quot; -&gt; &quot;ReceiverInterface&quot;
-     &quot;ServiceInterface&quot; -&gt; &quot;SenderMixin&quot;
-     &quot;ServiceInterface&quot; -&gt; &quot;ServiceMixin&quot;
-     &quot;ServiceMixin&quot; -&gt; &quot;ReceiverMixin&quot;
-     &quot;ServiceMixin&quot; -&gt; &quot;SenderMixin&quot;
-     &quot;ReceiverInterface&quot; -&gt; &quot;ReceiverMixin&quot;
-     &quot;SenderMixin&quot; -&gt; &quot;SenderMixin&quot;
-     &quot;ReceiverMixin&quot; -&gt; &quot;NewReceiverService&quot;
-     &quot;SenderMixin&quot; -&gt; &quot;NewSenderService&quot;
-}" class="graphviz" /></div>
-</div>
-<div class="section" id="classes">
-<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="interfaces">
-<h4>Interfaces<a class="headerlink" href="#interfaces" title="Permalink to this headline">¶</a></h4>
-<dl class="py class">
-<dt id="id0">
-<em class="property">class </em><code class="sig-prename descclassname">src.ser.common.itf.publication.</code><code class="sig-name descname">Publication</code><span class="sig-paren">(</span><em class="sig-param">publication_id: Union[str, int], title: Optional[src.ser.common.rich_text.RichText] = None, description: Optional[src.ser.common.rich_text.RichText] = None, url: Optional[str] = None, timestamp: Optional[datetime.datetime] = None, color: Optional[int] = None, images: List[src.ser.common.value_object.file_value_object.FileValueObject] = &lt;factory&gt;, files: List[src.ser.common.value_object.file_value_object.FileValueObject] = &lt;factory&gt;, author: Optional[src.ser.common.value_object.author.Author] = None, custom_fields: Optional[Any] = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/ser/common/itf/publication.html#Publication"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#id0" title="Permalink to this definition">¶</a></dt>
-<dd><p>Publication Interface. Is the base to create another dataclass that will be used to share publications between
-services.</p>
-</dd></dl>
-
-</div>
-<div class="section" id="mixins">
-<h4>Mixins<a class="headerlink" href="#mixins" title="Permalink to this headline">¶</a></h4>
-<dl class="py class">
-<dt id="src.ser.common.service_mixin.ServiceMixin">
-<em class="property">class </em><code class="sig-prename descclassname">src.ser.common.service_mixin.</code><code class="sig-name descname">ServiceMixin</code><a class="reference internal" href="_modules/src/ser/common/service_mixin.html#ServiceMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.ser.common.service_mixin.ServiceMixin" title="Permalink to this definition">¶</a></dt>
-<dd><p>Common Service Mixin. This class includes methods that required by senders services and receivers services.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt id="src.ser.common.receiver_mixin.ReceiverMixin">
-<em class="property">class </em><code class="sig-prename descclassname">src.ser.common.receiver_mixin.</code><code class="sig-name descname">ReceiverMixin</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">logger</span><span class="p">:</span> <span class="n">src.inf.logger.itf.logger_interface.LoggerInterface</span></em>, <em class="sig-param"><span class="n">wait_time</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">state_change_queue</span><span class="p">:</span> <span class="n">asyncio.queues.Queue</span></em>, <em class="sig-param"><span class="n">queue_manager</span><span class="p">:</span> <span class="n">src.ser.common.queue_manager.QueueManager</span></em>, <em class="sig-param"><span class="n">files_directory</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">download_files</span><span class="p">:</span> <span class="n">bool</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/ser/common/receiver_mixin.html#ReceiverMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.ser.common.receiver_mixin.ReceiverMixin" title="Permalink to this definition">¶</a></dt>
-<dd><p>Receiver Common Service Mixin. This mixin include methods required by receivers services.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt id="src.ser.common.sender_mixin.SenderMixin">
-<em class="property">class </em><code class="sig-prename descclassname">src.ser.common.sender_mixin.</code><code class="sig-name descname">SenderMixin</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state_change_queue</span><span class="p">:</span> <span class="n">asyncio.queues.Queue</span></em>, <em class="sig-param"><span class="n">logger</span><span class="p">:</span> <span class="n">src.inf.logger.itf.logger_interface.LoggerInterface</span></em>, <em class="sig-param"><span class="n">publication_queue</span><span class="p">:</span> <span class="n">asyncio.queues.Queue</span></em>, <em class="sig-param"><span class="n">failed_publication_directory</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/ser/common/sender_mixin.html#SenderMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.ser.common.sender_mixin.SenderMixin" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sender Common Service Mixin. This mixin include methods required by senders services.</p>
-</dd></dl>
-
-</div>
-</div>
-</div>
 </div>
 
 
@@ -185,9 +111,10 @@ services.</p>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#definitions">Definitions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#workflow">Workflow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#develop-your-own-service">Develop your own service</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer.html">Developer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="todo.html">TODO</a></li>
 </ul>
 
@@ -196,7 +123,7 @@ services.</p>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="quick_start.html" title="previous chapter">QuickStart</a></li>
-      <li>Next: <a href="todo.html" title="next chapter">TODO</a></li>
+      <li>Next: <a href="modules.html" title="next chapter">Modules</a></li>
   </ul></li>
 </ul>
 </div>
@@ -226,7 +153,7 @@ services.</p>
       &copy;2020, Guibos.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

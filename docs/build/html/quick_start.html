@@ -35,61 +35,140 @@
             
   <div class="section" id="quickstart">
 <h1>QuickStart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h1>
-<ol class="arabic simple">
-<li><p><a class="reference internal" href="#create-configuration-file">Create configuration file</a></p></li>
-<li><p><a class="reference internal" href="#create-application-environment">Create application environment</a></p>
-<ul class="simple">
-<li><p><a class="reference internal" href="#run-docker-image">Run docker image</a></p></li>
-<li><p><a class="reference internal" href="#create-your-own-environment">Create your own environment</a></p></li>
-</ul>
-</li>
-</ol>
 <div class="section" id="create-configuration-file">
 <h2>Create configuration file<a class="headerlink" href="#create-configuration-file" title="Permalink to this headline">¶</a></h2>
 <p>Configuration file is a yaml that must be named <cite>config.yaml</cite>. This file must be saved on
 <cite>/etc/gabriel-messenger/config.yaml</cite></p>
 <p>See next example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">configuration</span><span class="p">:</span>
-  <span class="n">environment</span><span class="p">:</span> <span class="s2">&quot;&lt;enviornment&gt;&quot;</span>
-  <span class="n">app_logging_level</span><span class="p">:</span> <span class="s2">&quot;&lt;logging-level&gt;&quot;</span>
-  <span class="n">global_logging_level</span><span class="p">:</span> <span class="s2">&quot;&lt;logging-level&gt;&quot;</span>
+  <span class="n">environment</span><span class="p">:</span> <span class="n">test</span>
+  <span class="n">logging</span><span class="p">:</span>
+    <span class="k">global</span><span class="p">:</span>
+      <span class="n">level</span><span class="p">:</span> <span class="s2">&quot;WARNING&quot;</span>
+      <span class="n">fmt</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> </span><span class="si">%(process)d</span><span class="s2"> </span><span class="si">%(levelname)-8s</span><span class="s2"> </span><span class="si">%(name)s</span><span class="s2"> </span><span class="si">%(message)s</span><span class="s2">&quot;</span>
+    <span class="n">application</span><span class="p">:</span>
+      <span class="n">stream</span><span class="p">:</span>
+        <span class="n">formatter</span><span class="p">:</span>
+          <span class="n">fmt</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> </span><span class="si">%(process)d</span><span class="s2"> </span><span class="si">%(levelname)-8s</span><span class="s2"> </span><span class="si">%(name)s</span><span class="s2"> </span><span class="si">%(message)s</span><span class="s2">&quot;</span>
+        <span class="n">level</span><span class="p">:</span> <span class="s2">&quot;INFO&quot;</span>
+      <span class="n">smtp</span><span class="p">:</span>
+        <span class="n">formatter</span><span class="p">:</span>
+          <span class="n">fmt</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> </span><span class="si">%(process)d</span><span class="s2"> </span><span class="si">%(levelname)-8s</span><span class="s2"> </span><span class="si">%(name)s</span><span class="s2"> </span><span class="si">%(message)s</span><span class="s2">&quot;</span>
+        <span class="n">level</span><span class="p">:</span> <span class="s2">&quot;ERROR&quot;</span>
+        <span class="n">sender</span><span class="p">:</span> <span class="s2">&quot;username@domain.tld&quot;</span>
+        <span class="n">recipients</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;username@domain.tld&quot;</span><span class="p">]</span>
+        <span class="n">subject</span><span class="p">:</span> <span class="s2">&quot;Subject&quot;</span>
+        <span class="n">username</span><span class="p">:</span> <span class="s2">&quot;username&quot;</span>
+        <span class="n">password</span><span class="p">:</span> <span class="s2">&quot;password&quot;</span>
+        <span class="n">hostname</span><span class="p">:</span> <span class="s1">&#39;serverhostname&#39;</span>
+        <span class="n">port</span><span class="p">:</span> <span class="mi">465</span>
+        <span class="n">use_tls</span><span class="p">:</span> <span class="kc">True</span>
+      <span class="n">file</span><span class="p">:</span>
+
 <span class="n">environment</span><span class="p">:</span>
-  <span class="o">&lt;</span><span class="n">environment</span><span class="o">&gt;</span><span class="p">:</span>
+  <span class="n">production</span><span class="p">:</span>
     <span class="n">sender</span><span class="p">:</span>
-      <span class="n">Discord</span><span class="p">:</span>
-        <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="s2">&quot;&lt;bot-identifier&gt;&quot;</span>
-          <span class="n">token</span><span class="p">:</span> <span class="s2">&quot;&lt;discord-token&gt;&quot;</span>
-          <span class="n">activity</span><span class="p">:</span>
-            <span class="n">name</span><span class="p">:</span> <span class="s2">&quot;&lt;human-value&gt;&quot;</span>
-            <span class="nb">type</span><span class="p">:</span> <span class="s2">&quot;&lt;discord-activity-type&gt;&quot;</span>
-          <span class="n">clean_channels</span><span class="p">:</span>
-            <span class="o">-</span> <span class="o">&lt;</span><span class="n">channel</span><span class="o">-</span><span class="nb">id</span><span class="o">&gt;</span>
-          <span class="n">reporting_channels</span><span class="p">:</span>
-            <span class="o">-</span> <span class="o">&lt;</span><span class="n">channel</span><span class="o">-</span><span class="nb">id</span><span class="o">&gt;</span>
+      <span class="n">WhatsApp</span> <span class="n">Web</span><span class="p">:</span>
+        <span class="n">headless</span><span class="p">:</span> <span class="n">false</span>
+        <span class="n">instances</span><span class="p">:</span>
+          <span class="n">Guibos</span><span class="p">:</span>
+  <span class="n">test</span><span class="p">:</span>
+    <span class="n">sender</span><span class="p">:</span>
+      <span class="n">WhatsApp</span> <span class="n">Web</span><span class="p">:</span>
+        <span class="n">headless</span><span class="p">:</span> <span class="n">false</span>
+        <span class="n">instances</span><span class="p">:</span>
+          <span class="n">Guibos</span><span class="p">:</span>
     <span class="n">receiver</span><span class="p">:</span>
-      <span class="n">Blackfire</span><span class="p">:</span>
-        <span class="n">colour</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">integer</span><span class="o">-</span><span class="n">color</span><span class="o">&gt;</span>
-        <span class="n">wait_time</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">seconds</span><span class="o">&gt;</span>
-        <span class="n">download_files</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">true</span><span class="o">-</span><span class="ow">or</span><span class="o">-</span><span class="n">false</span><span class="o">&gt;</span>
-        <span class="n">search</span><span class="p">:</span>
-          <span class="s2">&quot;&lt;string-to-search&gt;&quot;</span><span class="p">:</span>
-            <span class="n">Discord</span><span class="p">:</span>
-              <span class="s1">&#39;Publisher&#39;</span><span class="p">:</span>
-                <span class="o">-</span> <span class="o">&lt;</span><span class="n">channel</span><span class="o">-</span><span class="nb">id</span><span class="o">&gt;</span>
+      <span class="n">Recycler</span><span class="p">:</span>
+        <span class="o">-</span> <span class="n">senders</span><span class="p">:</span>
+          <span class="n">WhatsApp</span> <span class="n">Web</span><span class="p">:</span>
+            <span class="n">Guibos</span><span class="p">:</span>
+              <span class="n">channel</span><span class="o">-</span><span class="n">name</span><span class="p">:</span>
+                <span class="n">publication_data</span><span class="p">:</span>
+                  <span class="n">colour</span><span class="p">:</span> <span class="mi">16711680</span>
+          <span class="n">module_config</span><span class="p">:</span>
+            <span class="n">wait_time</span><span class="p">:</span> <span class="mi">20</span>
+            <span class="n">publications</span><span class="p">:</span>
+              <span class="o">-</span> <span class="n">publication_id</span><span class="p">:</span> <span class="mi">1</span>
+                <span class="n">title</span><span class="p">:</span> <span class="p">{</span><span class="n">format_data</span><span class="p">:</span> <span class="n">markdown</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="s1">&#39;# Title&#39;</span><span class="p">}</span>
 </pre></div>
 </div>
-<p>You can download this example <a class="reference download internal" download="" href="_downloads/259fe82e12a866f01123927480c7851b/config.yaml"><code class="xref download docutils literal notranslate"><span class="pre">here</span></code></a>.</p>
+<p>You can download this example <a class="reference download internal" download="" href="_downloads/e8e39b0b1e1f512e1384e50d7aa29511/config.yaml"><code class="xref download docutils literal notranslate"><span class="pre">here</span></code></a>.</p>
+<ul class="simple">
+<li><p><strong>Configuration</strong>: Global configuration. This not change between environments.</p>
+<ul>
+<li><p><strong>Environment</strong></p></li>
+</ul>
+</li>
+<li><p><strong>Environment</strong>: Node that save all environments.</p>
+<ul>
+<li><p><strong>Environment node</strong>: To know what environment are available, check this: <a class="reference internal" href="developer.html#src.ser.common.enums.environment.Environment" title="src.ser.common.enums.environment.Environment"><code class="xref py py-meth docutils literal notranslate"><span class="pre">src.ser.common.enums.environment.Environment()</span></code></a></p>
+<ul>
+<li><p><strong>Sender Section</strong>: (Sender) This section save all configuration of each <em>Sender Service</em>. If you are not interested to load some <em>Sender Service</em>, not write (or comment) his sender section.</p>
+<ul>
+<li><p><strong>Sender Configuration</strong>: (In this case WhatsApp Web) This configure a sender service if you want to know how to configure each <em>Sender Service</em> check this document <a class="reference internal" href="modules.html"><span class="doc">Modules</span></a>.</p></li>
+</ul>
+</li>
+<li><p><strong>Receiver Section</strong>: This section save all configuration of each <em>Receiver Service</em>. If you are not interested to load some <em>Receiver Service</em>, not write (or comment) his sender section.</p>
+<ul>
+<li><p><strong>Senders</strong>: Section where is configured where publications will be send.</p>
+<ul>
+<li><p><strong>Sender Service Name</strong>: (In this case WhatsApp Web) will be the same as <strong>Sender Configuration</strong> Key.</p>
+<ul>
+<li><p><strong>Channel name or channel id</strong>: (In this case “Guibos” or “Gabriels”) Is a id or str of a channel or group that you want send publications. To get more information for each sender service check: <a class="reference internal" href="modules.html"><span class="doc">Modules</span></a>.</p>
+<ul>
+<li><p><strong>publication_data</strong>: This data will add or replace values of a publication. In previous example uses title replacement or title adding. <a class="reference internal" href="developer.html#src.ser.common.itf.publication.Publication" title="src.ser.common.itf.publication.Publication"><code class="xref py py-meth docutils literal notranslate"><span class="pre">src.ser.common.itf.publication.Publication()</span></code></a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>module_config</strong>: Configuration of the <em>Receiver Module</em>. To get more information for each receiver service check: <a class="reference internal" href="modules.html"><span class="doc">Modules</span></a>.</p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="section" id="good-practices">
+<h3>Good Practices<a class="headerlink" href="#good-practices" title="Permalink to this headline">¶</a></h3>
+<p>One of the biggest practise is create yaml anchors to avoid duplicated configuration.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">aliases</span><span class="p">:</span>
+  <span class="n">test</span><span class="p">:</span>
+    <span class="n">senders</span><span class="p">:</span> <span class="o">&amp;</span><span class="n">test_sender</span>
+      <span class="n">WhatsApp</span> <span class="n">Web</span><span class="p">:</span>
+        <span class="n">Guibos</span><span class="p">:</span>
+          <span class="n">GTEST</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">publication_data</span><span class="p">:</span>
+              <span class="n">colour</span><span class="p">:</span> <span class="mi">16711680</span>
+              <span class="n">author</span><span class="p">:</span>
+                <span class="n">name</span><span class="p">:</span> <span class="s1">&#39;Tester&#39;</span>
+                <span class="n">url</span><span class="p">:</span> <span class="s1">&#39;http://example.com&#39;</span>
+                <span class="n">icon_url</span><span class="p">:</span> <span class="s2">&quot;hhttp://example.com/example.jpg&quot;</span>
+<span class="n">environment</span><span class="p">:</span>
+  <span class="n">production</span><span class="p">:</span>
+    <span class="n">receiver</span><span class="p">:</span>
+      <span class="n">Blackfire</span><span class="p">:</span>
+        <span class="o">-</span> <span class="n">senders</span><span class="p">:</span>
+            <span class="o">&lt;&lt;</span> <span class="p">:</span>  <span class="p">[</span> <span class="o">*</span><span class="n">test_sender</span> <span class="p">]</span>
+          <span class="o">...</span>
+</pre></div>
+</div>
+<p>For more information this <a class="reference external" href="http://blogs.perl.org/users/tinita/2019/05/reusing-data-with-yaml-anchors-aliases-and-merge-keys.html">document</a> is a good reference.</p>
+</div>
 </div>
 <div class="section" id="create-application-environment">
 <h2>Create application environment<a class="headerlink" href="#create-application-environment" title="Permalink to this headline">¶</a></h2>
 <p>Currently the are two main ways to execute this app:</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#run-docker-image">Run docker image</a></p></li>
+<li><p><a class="reference internal" href="#run-a-docker-image">Run a docker image</a></p></li>
 <li><p><a class="reference internal" href="#create-your-own-environment">Create your own environment</a></p></li>
 </ul>
-<p>The easy way to use this app is <a class="reference internal" href="#run-docker-image">run docker image</a>.</p>
-<div class="section" id="run-docker-image">
-<h3>Run docker image<a class="headerlink" href="#run-docker-image" title="Permalink to this headline">¶</a></h3>
+<p>The easy way to use this app is <a class="reference internal" href="#run-a-docker-image">run a docker image</a>.</p>
+<div class="section" id="run-a-docker-image">
+<h3>Run a docker image<a class="headerlink" href="#run-a-docker-image" title="Permalink to this headline">¶</a></h3>
 <p>This method is the easy way. <a class="reference external" href="https://hub.docker.com/r/guibos/gabriel-messenger">Docker image</a> will be update of
 every gabriel-messenger update.</p>
 <div class="section" id="install-docker">
@@ -147,11 +226,24 @@ every gabriel-messenger update.</p>
 <h3>Navigation</h3>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">QuickStart</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#create-configuration-file">Create configuration file</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#create-application-environment">Create application environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#create-configuration-file">Create configuration file</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#good-practices">Good Practices</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#create-application-environment">Create application environment</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#run-a-docker-image">Run a docker image</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#install-docker">Install docker</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#run-container">Run container</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#create-your-own-environment">Create your own environment</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="documentation.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer.html">Developer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="todo.html">TODO</a></li>
 </ul>
 
@@ -190,7 +282,7 @@ every gabriel-messenger update.</p>
       &copy;2020, Guibos.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

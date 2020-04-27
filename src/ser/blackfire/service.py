@@ -1,34 +1,30 @@
 """Blackfire service module. This is a receiver service."""
 import re
-import urllib.parse
-from asyncio import Queue
 from datetime import datetime
 from typing import List, Optional
 
+import orm
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 
-from src.inf.logger.itf.logger_interface import LoggerInterface
+from src.ser.blackfire.data.blackfire_custom_fields import BlackfireCustomFields
 from src.ser.blackfire.data.blackfire_publication import BlackfirePublication
-from src.ser.blackfire.data.config import Config
-from src.ser.blackfire.data.custom_fields import CustomFields
-from src.ser.blackfire.models.identifier import Identifier, METADATA
-from src.ser.common.data.weiss_schwarz_barcelona_data import DaGameData
+from src.ser.blackfire.data.blackfire_service_config import BlackfireReceiverConfig
 from src.ser.common.enums.format_data import FormatData
-from src.ser.common.queue_manager import QueueManager
+from src.ser.common.models.identifier_factory import identifier_factory
 from src.ser.common.receiver_mixin import ReceiverMixin
 from src.ser.common.rich_text import RichText
 from src.ser.common.value_object.custom_field import CustomField
 from src.ser.common.value_object.transacation_data import TransactionData
 
 
-class BlackfireService(ReceiverMixin, DaGameData):
+class BlackfireService(ReceiverMixin):
     """Blackfire service. This is a receiver service. With a string parameter allows module filter product of
     all products of ADC Blackfire."""
     MODULE = 'Blackfire'
-    MODELS = (Identifier, )
-    MODEL_IDENTIFIER = Identifier
-    MODELS_METADATA = METADATA
+    MODELS_METADATA, MODEL_IDENTIFIER, MODELS = identifier_factory(orm.Integer(primary_key=True))
+
+    _RECEIVER_CONFIG = BlackfireReceiverConfig
 
     _DATE_FORMAT = r'[0-9]{2}.[0-9]{2}.[0-9]{4}'
     _PRODUCTS_URL = 'https://www.blackfire.eu/list.php?ppp=60&sort=age&query={}'
@@ -37,19 +33,8 @@ class BlackfireService(ReceiverMixin, DaGameData):
     _PUBLIC_URL = True
     _FORMAT_DATA = FormatData.HTML
 
-    def __init__(self, *, files_directory: str, queue_manager: QueueManager, search_parameters: str,
-                 download_files: bool, wait_time: int, logger: LoggerInterface, state_change_queue: Queue, colour: int):
-        super().__init__(logger=logger,
-                         wait_time=wait_time,
-                         state_change_queue=state_change_queue,
-                         queue_manager=queue_manager,
-                         files_directory=files_directory,
-                         download_files=download_files)
-        self._colour = colour
-        self._search_parameters = search_parameters
-
     async def _load_publications(self) -> None:
-        html = await self._get_site_content(url=self._PRODUCTS_URL.format(self._search_parameters))
+        html = await self._get_site_content(url=self._PRODUCTS_URL.format(self._receiver_config.search_parameters))
         html = html.decode('utf-8')
         beautiful_soup = BeautifulSoup(html, 'html.parser')
         products_bs = beautiful_soup.find('div', class_='product-list')
@@ -91,7 +76,7 @@ class BlackfireService(ReceiverMixin, DaGameData):
                                                  public_url=self._PUBLIC_URL,
                                                  pretty_name=product_name_text)
         beautiful_soup_description = beautiful_soup.find(class_="description").text.split('\n')
-        product_custom_fields_value_object = CustomFields(
+        product_custom_fields_value_object = BlackfireCustomFields(
             release_date=self._get_release_date(beautiful_soup_description=beautiful_soup_description),
             dead_line=self._get_dead_line(beautiful_soup_description=beautiful_soup_description),
         )
@@ -102,9 +87,7 @@ class BlackfireService(ReceiverMixin, DaGameData):
                                                                          format_data=self._FORMAT_DATA),
                                                     url=product_url,
                                                     timestamp=datetime.utcnow(),
-                                                    color=self._colour,
                                                     images=[file],
-                                                    author=self._AUTHOR,
                                                     custom_fields=product_custom_fields_value_object)
         return product_value_object
 
@@ -129,15 +112,3 @@ class BlackfireService(ReceiverMixin, DaGameData):
         if re.findall(self._DATE_FORMAT, line):
             date_text = date_text.replace('.', '/')
         return date_text
-
-    @classmethod
-    def _get_custom_configuration(cls, *, configuration, senders):
-        configurations = []
-        for search_text, sender_config in configuration['search'].items():
-            configurations.append(
-                Config(
-                    search_parameters=urllib.parse.quote(search_text),
-                    instance_name=cls._get_instance_name(search_text),
-                    queue_manager=cls._get_queue_manager(config=sender_config, senders=senders),
-                ))
-        return configurations

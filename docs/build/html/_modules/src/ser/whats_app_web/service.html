@@ -1,0 +1,271 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>src.ser.whats_app_web.service &#8212; Gabriel Messenger 0.1 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for src.ser.whats_app_web.service</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">asyncio</span> <span class="kn">import</span> <span class="n">Queue</span><span class="p">,</span> <span class="n">Task</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">import</span> <span class="nn">pyppeteer</span>
+<span class="kn">import</span> <span class="nn">pyppeteer.browser</span>
+<span class="kn">import</span> <span class="nn">pyppeteer.errors</span>
+<span class="kn">from</span> <span class="nn">pyppeteer.page</span> <span class="kn">import</span> <span class="n">Page</span>
+
+<span class="kn">from</span> <span class="nn">src.inf.logger.itf.logger_interface</span> <span class="kn">import</span> <span class="n">LoggerInterface</span>
+<span class="kn">from</span> <span class="nn">src.ser.common.enums.format_data</span> <span class="kn">import</span> <span class="n">FormatData</span>
+<span class="kn">from</span> <span class="nn">src.ser.common.itf.publication</span> <span class="kn">import</span> <span class="n">Publication</span>
+<span class="kn">from</span> <span class="nn">src.ser.common.sender_mixin</span> <span class="kn">import</span> <span class="n">SenderMixin</span>
+<span class="kn">from</span> <span class="nn">src.ser.common.value_object.file_value_object</span> <span class="kn">import</span> <span class="n">FileValueObject</span>
+<span class="kn">from</span> <span class="nn">src.ser.common.value_object.queue_data</span> <span class="kn">import</span> <span class="n">QueueData</span>
+
+
+<div class="viewcode-block" id="WhatsAppWebService"><a class="viewcode-back" href="../../../../modules.html#src.ser.whats_app_web.service.WhatsAppWebService">[docs]</a><span class="k">class</span> <span class="nc">WhatsAppWebService</span><span class="p">(</span><span class="n">SenderMixin</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;WhatsApp Web Client.&quot;&quot;&quot;</span>
+    <span class="n">MODULE</span> <span class="o">=</span> <span class="s1">&#39;WhatsApp Web&#39;</span>
+    <span class="n">_URL</span> <span class="o">=</span> <span class="s1">&#39;https://web.whatsapp.com/&#39;</span>
+    <span class="n">_HANDLE_SIGINT</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">_MAX_TEXT_LENGTH</span> <span class="o">=</span> <span class="mi">65536</span>
+    <span class="n">_LOAD_PAGE_TIMEOUT_MS</span> <span class="o">=</span> <span class="mi">300000</span>  <span class="c1"># 5 minute</span>
+    <span class="n">_MAX_RETRIES</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">_FORMAT_DATA</span> <span class="o">=</span> <span class="n">FormatData</span><span class="o">.</span><span class="n">WHATS_APP</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">publication_queue</span><span class="p">:</span> <span class="n">Queue</span><span class="p">,</span> <span class="n">state_change_queue</span><span class="p">:</span> <span class="n">Queue</span><span class="p">,</span> <span class="n">logger</span><span class="p">:</span> <span class="n">LoggerInterface</span><span class="p">,</span>
+                 <span class="n">failed_publication_directory</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">SenderMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                             <span class="n">state_change_queue</span><span class="o">=</span><span class="n">state_change_queue</span><span class="p">,</span>
+                             <span class="n">publication_queue</span><span class="o">=</span><span class="n">publication_queue</span><span class="p">,</span>
+                             <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span>
+                             <span class="n">failed_publication_directory</span><span class="o">=</span><span class="n">failed_publication_directory</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_browser</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pyppeteer</span><span class="o">.</span><span class="n">browser</span><span class="o">.</span><span class="n">Browser</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_page</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Page</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_publication_queue</span> <span class="o">=</span> <span class="n">publication_queue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_channel</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="WhatsAppWebService.run"><a class="viewcode-back" href="../../../../modules.html#src.ser.whats_app_web.service.WhatsAppWebService.run">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_directory</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">headless</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Run service&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Instance is working&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_browser</span> <span class="o">=</span> <span class="k">await</span> <span class="n">pyppeteer</span><span class="o">.</span><span class="n">launch</span><span class="p">(</span><span class="n">headless</span><span class="o">=</span><span class="n">headless</span><span class="p">,</span> <span class="n">userDataDir</span><span class="o">=</span><span class="n">data_directory</span><span class="p">,</span> <span class="n">handleSIGINT</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_page</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_browser</span><span class="o">.</span><span class="n">newPage</span><span class="p">()</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_page</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_URL</span><span class="p">)</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_manager</span><span class="p">()</span></div>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_create_task_from_configuration_custom</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">instance_configuration</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">instance_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                               <span class="n">loop</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">AbstractEventLoop</span><span class="p">,</span> <span class="n">publication_queue</span><span class="p">:</span> <span class="n">Queue</span><span class="p">,</span>
+                                               <span class="n">state_change_queue</span><span class="p">:</span> <span class="n">Queue</span><span class="p">,</span> <span class="n">failed_publication_directory</span><span class="p">,</span>
+                                               <span class="n">logger</span><span class="p">:</span> <span class="n">LoggerInterface</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Task</span><span class="p">:</span>
+        <span class="n">whats_app_instance</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">publication_queue</span><span class="o">=</span><span class="n">publication_queue</span><span class="p">,</span>
+            <span class="n">state_change_queue</span><span class="o">=</span><span class="n">state_change_queue</span><span class="p">,</span>
+            <span class="n">failed_publication_directory</span><span class="o">=</span><span class="n">failed_publication_directory</span><span class="p">,</span>
+            <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">data_directory</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_get_sub_directory</span><span class="p">(</span><span class="n">directory</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;directory_files&#39;</span><span class="p">],</span> <span class="n">sub_directory</span><span class="o">=</span><span class="bp">cls</span><span class="o">.</span><span class="n">_DATA_DIRECTORY</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">loop</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">whats_app_instance</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">headless</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;configuration&#39;</span><span class="p">][</span><span class="s1">&#39;headless&#39;</span><span class="p">],</span>
+            <span class="n">data_directory</span><span class="o">=</span><span class="n">data_directory</span><span class="p">,</span>
+        <span class="p">),</span>
+                                <span class="n">name</span><span class="o">=</span><span class="n">instance_name</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_load_publication</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">queue_data</span><span class="p">:</span> <span class="n">QueueData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">queue_data_copy</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">queue_data</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_MAX_RETRIES</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_publication_web</span><span class="p">(</span><span class="n">queue_data_copy</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">pyppeteer</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">TimeoutError</span><span class="p">:</span>
+                <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_load_publication_web</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">queue_data</span><span class="p">:</span> <span class="n">QueueData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_channel</span><span class="p">(</span><span class="n">queue_data</span><span class="o">.</span><span class="n">channel</span><span class="p">)</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_send_images</span><span class="p">(</span><span class="n">queue_data</span><span class="o">.</span><span class="n">publication</span><span class="o">.</span><span class="n">images</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_send_main_message</span><span class="p">(</span><span class="n">queue_data</span><span class="o">.</span><span class="n">publication</span><span class="p">)</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_send_files</span><span class="p">(</span><span class="n">queue_data</span><span class="o">.</span><span class="n">publication</span><span class="o">.</span><span class="n">files</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_set_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_channel</span> <span class="o">!=</span> <span class="n">channel_name</span><span class="p">:</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_search_channel</span><span class="p">(</span><span class="n">channel_name</span><span class="o">=</span><span class="n">channel_name</span><span class="p">)</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_click_channel</span><span class="p">(</span><span class="n">channel_name</span><span class="o">=</span><span class="n">channel_name</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_search_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">search</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_page</span><span class="o">.</span><span class="n">waitForSelector</span><span class="p">(</span><span class="s1">&#39;[data-icon=&quot;search&quot;]&#39;</span><span class="p">,</span>
+                                                  <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;timeout&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LOAD_PAGE_TIMEOUT_MS</span><span class="p">})</span>
+        <span class="k">await</span> <span class="n">search</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>  <span class="c1"># remove text on search bar</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_page</span><span class="o">.</span><span class="n">type</span><span class="p">(</span><span class="s1">&#39;[data-tab=&quot;3&quot;]&#39;</span><span class="p">,</span> <span class="n">channel_name</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_click_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">channel</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_page</span><span class="o">.</span><span class="n">waitForSelector</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;[title=&quot;</span><span class="si">{</span><span class="n">channel_name</span><span class="si">}</span><span class="s1">&quot;]&#39;</span><span class="p">,</span>
+                                                   <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;timeout&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LOAD_PAGE_TIMEOUT_MS</span><span class="p">})</span>
+        <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Javascript Rules</span>
+        <span class="k">await</span> <span class="n">channel</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_send_main_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">publication</span><span class="p">:</span> <span class="n">Publication</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">publication</span><span class="o">.</span><span class="n">to_format</span><span class="p">(</span><span class="n">format_data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_FORMAT_DATA</span><span class="p">)</span>
+        <span class="n">text_chunks</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_text_chunks</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_MAX_TEXT_LENGTH</span><span class="p">)</span>
+        <span class="n">first_iteration</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">text_chunk</span> <span class="ow">in</span> <span class="n">text_chunks</span><span class="p">:</span>
+            <span class="c1"># Is required evaluate each iteration if message box is available. Because if image is sent this could be</span>
+            <span class="c1">#  not available.</span>
+            <span class="n">message_box</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_page</span><span class="o">.</span><span class="n">waitForSelector</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;[data-tab=&quot;1&quot;]&#39;</span><span class="p">,</span>
+                                                           <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;timeout&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LOAD_PAGE_TIMEOUT_MS</span><span class="p">})</span>
+            <span class="k">await</span> <span class="n">message_box</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">paragraph_lf</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(\n)&#39;</span><span class="p">,</span> <span class="n">text_chunk</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">paragraph_lf</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">:</span>
+                    <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_page</span><span class="o">.</span><span class="n">keyboard</span><span class="o">.</span><span class="n">down</span><span class="p">(</span><span class="s1">&#39;Shift&#39;</span><span class="p">)</span>
+                    <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_page</span><span class="o">.</span><span class="n">keyboard</span><span class="o">.</span><span class="n">down</span><span class="p">(</span><span class="s1">&#39;Enter&#39;</span><span class="p">)</span>
+                    <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_page</span><span class="o">.</span><span class="n">keyboard</span><span class="o">.</span><span class="n">up</span><span class="p">(</span><span class="s1">&#39;Shift&#39;</span><span class="p">)</span>
+                    <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_page</span><span class="o">.</span><span class="n">keyboard</span><span class="o">.</span><span class="n">up</span><span class="p">(</span><span class="s1">&#39;Enter&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">await</span> <span class="n">message_box</span><span class="o">.</span><span class="n">type</span><span class="p">(</span><span class="n">paragraph_lf</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">first_iteration</span> <span class="ow">and</span> <span class="n">publication</span><span class="o">.</span><span class="n">images</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Javascript Rules</span>
+                <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attach_click</span><span class="p">()</span>
+                <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attach_image</span><span class="p">(</span><span class="n">publication</span><span class="o">.</span><span class="n">images</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">first_iteration</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_send_image</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">text_chunk</span><span class="p">:</span>
+                <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_send_text</span><span class="p">()</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_send_images</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">images</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileValueObject</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">images</span><span class="p">:</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attach_click</span><span class="p">()</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attach_image</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_send_image</span><span class="p">()</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_send_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileValueObject</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attach_click</span><span class="p">()</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attach_file</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_send_image</span><span class="p">()</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_attach_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">:</span> <span class="n">FileValueObject</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">input_image</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_page</span><span class="o">.</span><span class="n">waitForSelector</span><span class="p">(</span><span class="s1">&#39;[accept=&quot;image/*,video/mp4,video/3gpp,video/quicktime&quot;]&#39;</span><span class="p">,</span>
+                                                       <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;timeout&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LOAD_PAGE_TIMEOUT_MS</span><span class="p">})</span>
+        <span class="k">await</span> <span class="n">input_image</span><span class="o">.</span><span class="n">uploadFile</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_attach_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">FileValueObject</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">input_image</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_page</span><span class="o">.</span><span class="n">waitForSelector</span><span class="p">(</span><span class="s1">&#39;[accept=&quot;*&quot;]&#39;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;timeout&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LOAD_PAGE_TIMEOUT_MS</span><span class="p">})</span>
+        <span class="k">await</span> <span class="n">input_image</span><span class="o">.</span><span class="n">uploadFile</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_attach_click</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">attach_icon</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_page</span><span class="o">.</span><span class="n">waitForSelector</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;[data-icon=&quot;clip&quot;]&#39;</span><span class="p">,</span>
+                                                       <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;timeout&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LOAD_PAGE_TIMEOUT_MS</span><span class="p">})</span>
+        <span class="k">await</span> <span class="n">attach_icon</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_send_image</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">send_icon</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_page</span><span class="o">.</span><span class="n">waitForSelector</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;[data-icon=&quot;send-light&quot;]&#39;</span><span class="p">,</span>
+                                                     <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;timeout&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LOAD_PAGE_TIMEOUT_MS</span><span class="p">})</span>
+        <span class="k">await</span> <span class="n">send_icon</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_send_text</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">send_icon</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_page</span><span class="o">.</span><span class="n">waitForSelector</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;[data-icon=&quot;send&quot;]&#39;</span><span class="p">,</span>
+                                                     <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;timeout&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LOAD_PAGE_TIMEOUT_MS</span><span class="p">})</span>
+        <span class="k">await</span> <span class="n">send_icon</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_browser</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">Gabriel Messenger</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quick_start.html">QuickStart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../documentation.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modules.html">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer.html">Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../todo.html">TODO</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Guibos.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

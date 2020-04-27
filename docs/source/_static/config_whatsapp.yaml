@@ -1,0 +1,8 @@
+environment:
+  production:
+    sender:
+      WhatsApp Web:
+        headless: true
+        instances:
+          Guibos:
+          Gabriel:

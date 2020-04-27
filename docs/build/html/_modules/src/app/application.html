@@ -47,6 +47,8 @@
 <span class="kn">from</span> <span class="nn">src.ser.common.sender_mixin</span> <span class="kn">import</span> <span class="n">SenderMixin</span>
 <span class="kn">from</span> <span class="nn">src.ser.common.value_object.task_value_object</span> <span class="kn">import</span> <span class="n">TaskValueObject</span>
 <span class="kn">from</span> <span class="nn">src.ser.discord.service</span> <span class="kn">import</span> <span class="n">DiscordService</span>
+<span class="kn">from</span> <span class="nn">src.ser.recycler.service</span> <span class="kn">import</span> <span class="n">Recycler</span>
+<span class="kn">from</span> <span class="nn">src.ser.whats_app_web.service</span> <span class="kn">import</span> <span class="n">WhatsAppWebService</span>
 <span class="kn">from</span> <span class="nn">src.ser.ws_banner.service</span> <span class="kn">import</span> <span class="n">WSBannerService</span>
 <span class="kn">from</span> <span class="nn">src.ser.ws_news.service</span> <span class="kn">import</span> <span class="n">WSNews</span>
 <span class="kn">from</span> <span class="nn">src.ser.ws_today_card.service</span> <span class="kn">import</span> <span class="n">WSTodayCard</span>
@@ -54,13 +56,14 @@
 <span class="kn">from</span> <span class="nn">src.ser.ws_tournament_jp.service</span> <span class="kn">import</span> <span class="n">WSTournamentJp</span>
 
 
-<div class="viewcode-block" id="Application"><a class="viewcode-back" href="../../../documentation.html#src.app.application.Application">[docs]</a><span class="k">class</span> <span class="nc">Application</span><span class="p">:</span>
+<div class="viewcode-block" id="Application"><a class="viewcode-back" href="../../../documentation.html#src.app.application.Application">[docs]</a><span class="k">class</span> <span class="nc">Application</span><span class="p">:</span>  <span class="c1"># pylint: disable=too-few-public-methods</span>
     <span class="sd">&quot;&quot;&quot;Application class. The one in charge of governing all the modules.&quot;&quot;&quot;</span>
     <span class="n">_APP_NAME</span> <span class="o">=</span> <span class="s1">&#39;GabrielMessenger&#39;</span>
     <span class="n">_SLEEPING_SECONDS</span> <span class="o">=</span> <span class="mi">5</span>
-    <span class="n">_SENDERS</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">SenderMixin</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">DiscordService</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">_SENDERS</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">SenderMixin</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">DiscordService</span><span class="p">,</span> <span class="n">WhatsAppWebService</span><span class="p">)</span>
     <span class="n">_RECEIVERS</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">ReceiverMixin</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">BlackfireService</span><span class="p">,</span>
+        <span class="n">Recycler</span><span class="p">,</span>
         <span class="n">WSBannerService</span><span class="p">,</span>
         <span class="n">WSNews</span><span class="p">,</span>
         <span class="n">WSTodayCard</span><span class="p">,</span>
@@ -70,40 +73,48 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">configuration</span><span class="p">:</span> <span class="n">Configuration</span><span class="p">):</span>
         <span class="n">files_directory</span> <span class="o">=</span> <span class="n">appdirs</span><span class="o">.</span><span class="n">user_data_dir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_APP_NAME</span><span class="p">)</span>
-        <span class="n">logger_configuration</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get_global_configuration</span><span class="p">()[</span><span class="s1">&#39;logger&#39;</span><span class="p">]</span>
+        <span class="n">logger_configuration</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get_global_configuration</span><span class="p">()[</span><span class="s1">&#39;logging&#39;</span><span class="p">][</span><span class="s1">&#39;application&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_environment</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">get_global_configuration</span><span class="p">()[</span><span class="s1">&#39;environment&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_loop</span><span class="o">.</span><span class="n">add_signal_handler</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGINT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clean_shutdown</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_senders_repositories_instances_value_objects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_senders</span><span class="p">(</span>
+        <span class="n">senders</span><span class="p">,</span> <span class="n">download_files</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_senders</span><span class="p">(</span>
             <span class="n">config</span><span class="o">=</span><span class="n">configuration</span><span class="o">.</span><span class="n">get_modules</span><span class="p">()[</span><span class="s1">&#39;sender&#39;</span><span class="p">],</span>
             <span class="n">loop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_loop</span><span class="p">,</span>
-            <span class="n">configuration</span><span class="o">=</span><span class="n">configuration</span><span class="p">,</span>
             <span class="n">logger_configuration</span><span class="o">=</span><span class="n">logger_configuration</span><span class="p">,</span>
         <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_senders_repositories_instances_value_objects</span> <span class="o">=</span> <span class="n">senders</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_receivers_repositories_instances_value_objects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_receivers</span><span class="p">(</span>
             <span class="n">config</span><span class="o">=</span><span class="n">configuration</span><span class="o">.</span><span class="n">get_modules</span><span class="p">()[</span><span class="s1">&#39;receiver&#39;</span><span class="p">],</span>
             <span class="n">senders</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_senders_repositories_instances_value_objects</span><span class="p">,</span>
             <span class="n">loop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_loop</span><span class="p">,</span>
             <span class="n">logger_configuration</span><span class="o">=</span><span class="n">logger_configuration</span><span class="p">,</span>
+            <span class="n">download_files</span><span class="o">=</span><span class="n">download_files</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span> <span class="o">=</span> <span class="n">Logger</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">configuration</span><span class="o">=</span><span class="n">logger_configuration</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_APP_NAME</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">files_directory</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Environment: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_environment</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_get_senders</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">loop</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">AbstractEventLoop</span><span class="p">,</span> <span class="n">configuration</span><span class="p">:</span> <span class="n">Configuration</span><span class="p">,</span>
-                     <span class="n">logger_configuration</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TaskValueObject</span><span class="p">]]:</span>
-        <span class="k">return</span> <span class="p">{</span>
-            <span class="n">sender_name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_sender_class</span><span class="p">(</span><span class="n">sender_name</span><span class="o">=</span><span class="n">sender_name</span><span class="p">)</span><span class="o">.</span><span class="n">create_tasks_from_configuration</span><span class="p">(</span>
-                <span class="n">configuration</span><span class="o">=</span><span class="n">sender_config</span><span class="p">,</span>
-                <span class="n">loop</span><span class="o">=</span><span class="n">loop</span><span class="p">,</span>
-                <span class="n">logging_level</span><span class="o">=</span><span class="n">configuration</span><span class="o">.</span><span class="n">get_global_configuration</span><span class="p">()[</span><span class="s1">&#39;app_logging_level&#39;</span><span class="p">],</span>
-                <span class="n">app_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_APP_NAME</span><span class="p">,</span>
-                <span class="n">environment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_environment</span><span class="p">,</span>
-                <span class="n">logger_configuration</span><span class="o">=</span><span class="n">logger_configuration</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="k">for</span> <span class="n">sender_name</span><span class="p">,</span> <span class="n">sender_config</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-        <span class="p">}</span>
+    <span class="k">def</span> <span class="nf">_get_senders</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">loop</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">AbstractEventLoop</span><span class="p">,</span>
+                     <span class="n">logger_configuration</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TaskValueObject</span><span class="p">]],</span> <span class="nb">bool</span><span class="p">]:</span>
+        <span class="n">senders</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">download_files_final</span> <span class="o">=</span> <span class="kc">False</span>
 
-    <span class="k">def</span> <span class="nf">_get_receivers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">senders</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TaskValueObject</span><span class="p">]],</span>
-                       <span class="n">logger_configuration</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">loop</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">AbstractEventLoop</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">TaskValueObject</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">sender_name</span><span class="p">,</span> <span class="n">sender_config</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">repository_instances_value_objects</span><span class="p">,</span> <span class="n">download_files</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_sender_class</span><span class="p">(</span>
+                <span class="n">sender_name</span><span class="o">=</span><span class="n">sender_name</span><span class="p">)</span><span class="o">.</span><span class="n">create_tasks_from_configuration</span><span class="p">(</span>
+                    <span class="n">configuration</span><span class="o">=</span><span class="n">sender_config</span><span class="p">,</span>
+                    <span class="n">loop</span><span class="o">=</span><span class="n">loop</span><span class="p">,</span>
+                    <span class="n">app_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_APP_NAME</span><span class="p">,</span>
+                    <span class="n">environment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_environment</span><span class="p">,</span>
+                    <span class="n">logger_configuration</span><span class="o">=</span><span class="n">logger_configuration</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="n">download_files_final</span> <span class="o">=</span> <span class="n">download_files_final</span> <span class="ow">or</span> <span class="n">download_files</span>
+            <span class="n">senders</span><span class="p">[</span><span class="n">sender_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">repository_instances_value_objects</span>
+
+        <span class="k">return</span> <span class="n">senders</span><span class="p">,</span> <span class="n">download_files_final</span>
+
+    <span class="k">def</span> <span class="nf">_get_receivers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">senders</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span>
+                                                                      <span class="n">TaskValueObject</span><span class="p">]],</span> <span class="n">logger_configuration</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+                       <span class="n">loop</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">AbstractEventLoop</span><span class="p">,</span> <span class="n">download_files</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">TaskValueObject</span><span class="p">]:</span>
         <span class="n">tasks</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">receiver_name</span><span class="p">,</span> <span class="n">receiver_config</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">tasks</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
@@ -113,7 +124,8 @@
                     <span class="n">loop</span><span class="o">=</span><span class="n">loop</span><span class="p">,</span>
                     <span class="n">app_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_APP_NAME</span><span class="p">,</span>
                     <span class="n">environment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_environment</span><span class="p">,</span>
-                    <span class="n">logger_configuration</span><span class="o">=</span><span class="n">logger_configuration</span><span class="p">))</span>
+                    <span class="n">logger_configuration</span><span class="o">=</span><span class="n">logger_configuration</span><span class="p">,</span>
+                    <span class="n">download_files</span><span class="o">=</span><span class="n">download_files</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">tasks</span>
 
     <span class="k">def</span> <span class="nf">_get_sender_class</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">sender_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SenderMixin</span><span class="p">:</span>
@@ -209,6 +221,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">QuickStart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../documentation.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer.html">Developer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../todo.html">TODO</a></li>
 </ul>
 
@@ -247,7 +261,7 @@
       &copy;2020, Guibos.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

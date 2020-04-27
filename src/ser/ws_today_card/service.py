@@ -2,58 +2,47 @@
 
 import os
 import urllib.parse
-from asyncio import Queue
 from datetime import datetime
 from typing import Optional
 
+import orm
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 
-from src.inf.logger.itf.logger_interface import LoggerInterface
-from src.ser.common.data.weiss_schwarz_barcelona_data import DaGameData
 from src.ser.common.enums.format_data import FormatData
 from src.ser.common.enums.language import Language
 from src.ser.common.itf.publication import Publication
-from src.ser.common.queue_manager import QueueManager
+from src.ser.common.models.identifier_factory import identifier_factory
 from src.ser.common.receiver_mixin import ReceiverMixin
 from src.ser.common.rich_text import RichText
+from src.ser.common.value_object.receiver_full_config import ReceiverFullConfig
 from src.ser.common.value_object.transacation_data import TransactionData
-from src.ser.ws_today_card.data.config import Config
-from src.ser.ws_today_card.models.identifier import Identifier, METADATA
+from src.ser.ws_today_card.data.ws_banner_service_config import WSTodayCardReceiverConfig
 
 
-class WSTodayCard(ReceiverMixin, DaGameData):
+class WSTodayCard(ReceiverMixin):
     """Weiss Schwarz today's card service. This is a receiver service. Get all today's card of Weiss Schwarz."""
     MODULE = "Weiß Schwarz - Today's card"
     _EN_URL = 'https://en.ws-tcg.com/products/ws_today'
     _JP_URL = 'https://ws-tcg.com/todays-card/'
     _JP_DOMAIN = 'https://ws-tcg.com/'
     _EN_DOMAIN = 'https://en.ws-tcg.com'
-    MODEL_IDENTIFIER = Identifier
-    MODELS = (Identifier, )
-    MODELS_METADATA = METADATA
+    MODELS_METADATA, MODEL_IDENTIFIER, MODELS = identifier_factory(orm.Text(primary_key=True))
     _TITLE = "{} Edition - Today's Card"
+    _RECEIVER_CONFIG = WSTodayCardReceiverConfig
 
-    def __init__(self, *, files_directory: str, queue_manager: QueueManager, language: Language, download_files: bool,
-                 wait_time: int, logger: LoggerInterface, state_change_queue: Queue, colour: int):
-        super().__init__(logger=logger,
-                         wait_time=wait_time,
-                         state_change_queue=state_change_queue,
-                         queue_manager=queue_manager,
-                         files_directory=files_directory,
-                         download_files=download_files)
-        self._colour = colour
-        self._download_files = download_files
-        self._files_directory = files_directory
-        self._title = self._TITLE.format(language.value)
-        if language == Language.ENGLISH:
+    def __init__(self, receiver_full_config: ReceiverFullConfig):
+        self._title = self._TITLE.format(receiver_full_config.receiver_config.language.value)
+        if receiver_full_config.receiver_config.language == Language.ENGLISH:
             self._url = self._EN_URL
             self._domain = self._EN_DOMAIN
-        elif language == Language.JAPANESE:
+        elif receiver_full_config.receiver_config.language == Language.JAPANESE:
             self._url = self._JP_URL
             self._domain = self._JP_DOMAIN
         else:
             raise NotImplementedError
+
+        super().__init__(receiver_full_config)
 
     async def _load_publications(self):
         html = await self._get_site_content(url=self._url)
@@ -93,20 +82,5 @@ class WSTodayCard(ReceiverMixin, DaGameData):
             title=rich_title,
             url=self._url,
             timestamp=datetime.utcnow(),
-            color=self._colour,
             images=[file],
-            author=self._AUTHOR,
         )
-
-    @classmethod
-    def _get_custom_configuration(cls, *, configuration, senders):
-        configurations = []
-        for language_text, sender_config in configuration['send'].items():
-            language = Language(language_text)
-            configurations.append(
-                Config(
-                    language=language,
-                    instance_name=cls._get_instance_name(language_text),
-                    queue_manager=cls._get_queue_manager(config=sender_config, senders=senders),
-                ))
-        return configurations

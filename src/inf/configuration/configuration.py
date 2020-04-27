@@ -16,10 +16,7 @@ class Configuration:
 
     _CONFIG_PATH = "/etc/gabriel-messenger/config.yaml"
 
-    def __init__(self,
-                 *,
-                 config_path: Path = None,
-                 environment: Environment = None) -> None:
+    def __init__(self, *, config_path: Path = None, environment: Environment = None) -> None:
         """Get a configuration object with a configuration file read."""
         self._config_path = config_path or self._CONFIG_PATH
         with open(self._config_path, 'r', encoding='utf-8') as file:
@@ -37,7 +34,7 @@ class Configuration:
         try:
             return self._config['configuration']
         except KeyError:
-            raise ConfigurationError(f"Missing section configuration")
+            raise ConfigurationError("Missing section configuration")
 
     def get_modules(self) -> Dict[str, dict]:
         """Get all modules that matches with the current environment."""

@@ -2,25 +2,22 @@
 
 import re
 import urllib.parse
-from asyncio import Queue
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
+import orm
 from bs4 import BeautifulSoup, element
 
-from src.inf.logger.itf.logger_interface import LoggerInterface
-from src.ser.common.data.weiss_schwarz_barcelona_data import DaGameData
 from src.ser.common.enums.format_data import FormatData
-from src.ser.common.itf.custom_config import CustomConfig
 from src.ser.common.itf.publication import Publication
-from src.ser.common.queue_manager import QueueManager
+from src.ser.common.itf.receiver_config import ReceiverConfig
+from src.ser.common.models.identifier_factory import identifier_factory
 from src.ser.common.receiver_mixin import ReceiverMixin
 from src.ser.common.rich_text import RichText
 from src.ser.common.value_object.transacation_data import TransactionData
-from src.ser.ws_news.models.identifier import Identifier, METADATA
 
 
-class WSNews(ReceiverMixin, DaGameData):
+class WSNews(ReceiverMixin):
     """Weiß Schwarz - News. This is a receiver service. Get news."""
 
     MODULE = "Weiß Schwarz - News"
@@ -29,27 +26,11 @@ class WSNews(ReceiverMixin, DaGameData):
     _NETLOC = 'en.ws-tcg.com'
     _PUBLIC_URL = True
     _FILENAME_UNIQUE = True
-    MODEL_IDENTIFIER = Identifier
-    MODELS = (Identifier, )
-    MODELS_METADATA = METADATA
+    MODELS_METADATA, MODEL_IDENTIFIER, MODELS = identifier_factory(orm.Text(primary_key=True))
     _BANNED_ALT = ("FB_icon", "IG_icon", "Twitter_icon")
-
-    def __init__(self, *, files_directory: str, queue_manager: QueueManager, download_files: bool, wait_time: int,
-                 logger: LoggerInterface, state_change_queue: Queue, colour: int):
-        super().__init__(logger=logger,
-                         wait_time=wait_time,
-                         state_change_queue=state_change_queue,
-                         queue_manager=queue_manager,
-                         files_directory=files_directory,
-                         download_files=download_files)
-        self._colour = colour
-        self._queue_manager = queue_manager
-        self._download_files = download_files
-        self._files_directory = files_directory
-        self._cache: List[int] = []
+    _RECEIVER_CONFIG = ReceiverConfig
 
     async def _load_publications(self):
-
         html = await self._get_site_content(url=self._URL)
         beautiful_soap = BeautifulSoup(html, 'html5lib')
         news = beautiful_soap.find('ul', class_='info-list').find_all('li')
@@ -105,9 +86,7 @@ class WSNews(ReceiverMixin, DaGameData):
             url=url,
             files=files,
             timestamp=datetime.utcnow(),
-            color=self._colour,
             images=images,
-            author=self._AUTHOR,
         )
 
     async def _get_images(self, data: element, title: str, max_images: Optional[int] = None) -> element:
@@ -137,23 +116,15 @@ class WSNews(ReceiverMixin, DaGameData):
         data = RichText(data=str(await self._remove_non_text_tags(data=data)), format_data=FormatData.HTML)
         return data
 
-    async def _remove_non_text_tags(self, data: element) -> element:
+    @staticmethod
+    async def _remove_non_text_tags(data: element) -> element:
         for script in data.find_all('script'):
             script.decompose()
         return data
 
-    async def _clean_text(self, text):
+    @staticmethod
+    async def _clean_text(text):
         text = text.strip()
         text = re.sub(r'\n +', r'\n', text)
         text = re.sub(r'\n{2,}', r'\n\n', text)
         return text
-
-    @classmethod
-    def _get_custom_configuration(cls, *, configuration, senders):
-        configurations = [
-            CustomConfig(
-                instance_name=cls._get_instance_name(),
-                queue_manager=cls._get_queue_manager(config=configuration['send'], senders=senders),
-            )
-        ]
-        return configurations

@@ -26,8 +26,7 @@ def run():
     """Run App."""
     configuration = Configuration(**parse_args())
     logging_configuration = configuration.get_global_configuration()['logging']['global']
-    logging.basicConfig(level=logging_configuration['level'],
-                        format=logging_configuration['fmt'])
+    logging.basicConfig(level=logging_configuration['level'], format=logging_configuration['fmt'])
     app = Application(configuration=configuration)
     app.run()
 

@@ -13,6 +13,8 @@ from src.ser.common.receiver_mixin import ReceiverMixin
 from src.ser.common.sender_mixin import SenderMixin
 from src.ser.common.value_object.task_value_object import TaskValueObject
 from src.ser.discord.service import DiscordService
+from src.ser.recycler.service import Recycler
+from src.ser.whats_app_web.service import WhatsAppWebService
 from src.ser.ws_banner.service import WSBannerService
 from src.ser.ws_news.service import WSNews
 from src.ser.ws_today_card.service import WSTodayCard
@@ -20,13 +22,14 @@ from src.ser.ws_tournament_en.service import WSTournamentEn
 from src.ser.ws_tournament_jp.service import WSTournamentJp
 
 
-class Application:
+class Application:  # pylint: disable=too-few-public-methods
     """Application class. The one in charge of governing all the modules."""
     _APP_NAME = 'GabrielMessenger'
     _SLEEPING_SECONDS = 5
-    _SENDERS: Tuple[SenderMixin] = (DiscordService, )
+    _SENDERS: Tuple[SenderMixin] = (DiscordService, WhatsAppWebService)
     _RECEIVERS: Tuple[ReceiverMixin] = (
         BlackfireService,
+        Recycler,
         WSBannerService,
         WSNews,
         WSTodayCard,
@@ -40,36 +43,44 @@ class Application:
         self._environment = configuration.get_global_configuration()['environment']
         self._loop = asyncio.get_event_loop()
         self._loop.add_signal_handler(signal.SIGINT, self._clean_shutdown)
-        self._senders_repositories_instances_value_objects = self._get_senders(
+        senders, download_files = self._get_senders(
             config=configuration.get_modules()['sender'],
             loop=self._loop,
-            configuration=configuration,
             logger_configuration=logger_configuration,
         )
+        self._senders_repositories_instances_value_objects = senders
         self._receivers_repositories_instances_value_objects = self._get_receivers(
             config=configuration.get_modules()['receiver'],
             senders=self._senders_repositories_instances_value_objects,
             loop=self._loop,
             logger_configuration=logger_configuration,
+            download_files=download_files,
         )
         self._logger = Logger.get_logger(configuration=logger_configuration, name=self._APP_NAME, path=files_directory)
         self._logger.info(f"Environment: {self._environment.value}")
 
-    def _get_senders(self, *, config: Dict, loop: asyncio.AbstractEventLoop, configuration: Configuration,
-                     logger_configuration: dict) -> Dict[str, Dict[str, TaskValueObject]]:
-        return {
-            sender_name: self._get_sender_class(sender_name=sender_name).create_tasks_from_configuration(
-                configuration=sender_config,
-                loop=loop,
-                app_name=self._APP_NAME,
-                environment=self._environment,
-                logger_configuration=logger_configuration,
-            )
-            for sender_name, sender_config in config.items()
-        }
+    def _get_senders(self, *, config: Dict, loop: asyncio.AbstractEventLoop,
+                     logger_configuration: dict) -> Tuple[Dict[str, Dict[str, TaskValueObject]], bool]:
+        senders = {}
+        download_files_final = False
 
-    def _get_receivers(self, *, config: dict, senders: Dict[str, Dict[str, TaskValueObject]],
-                       logger_configuration: dict, loop: asyncio.AbstractEventLoop) -> List[TaskValueObject]:
+        for sender_name, sender_config in config.items():
+            repository_instances_value_objects, download_files = self._get_sender_class(
+                sender_name=sender_name).create_tasks_from_configuration(
+                    configuration=sender_config,
+                    loop=loop,
+                    app_name=self._APP_NAME,
+                    environment=self._environment,
+                    logger_configuration=logger_configuration,
+                )
+            download_files_final = download_files_final or download_files
+            senders[sender_name] = repository_instances_value_objects
+
+        return senders, download_files_final
+
+    def _get_receivers(self, *, config: dict, senders: Dict[str, Dict[str,
+                                                                      TaskValueObject]], logger_configuration: dict,
+                       loop: asyncio.AbstractEventLoop, download_files: bool) -> List[TaskValueObject]:
         tasks = []
         for receiver_name, receiver_config in config.items():
             tasks.extend(
@@ -79,7 +90,8 @@ class Application:
                     loop=loop,
                     app_name=self._APP_NAME,
                     environment=self._environment,
-                    logger_configuration=logger_configuration))
+                    logger_configuration=logger_configuration,
+                    download_files=download_files))
         return tasks
 
     def _get_sender_class(self, *, sender_name: str) -> SenderMixin:
