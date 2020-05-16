@@ -17,6 +17,32 @@ You can download this example :download:`here <_static/config.yaml>`.
 * **Configuration**: Global configuration. This not change between environments.
 
   * **Environment**
+  * **Logging**: Logging Config
+
+    * **Global**: Affect all external libraries.
+    * **Application**: Affect only GabrielMessenger modules.
+
+      * **Stream**: Stout and Stderr output logging.
+
+        * **Formatter**
+
+          * **fmt**
+
+        * **Level**: Logging level.
+
+    * **SMTP**: SMTP output logging:
+
+      * **Level**: Logging level.
+      * **Sender**
+      * **Recipients**
+      * **Subject**
+      * **Username**
+      * **Password**
+      * **Hostname**: SMTP hostname server
+      * **Port**
+      * **Use_tls**
+
+    * **File**: No require more configuration. Add key. To save all logs in a file. Each instance of application or a service have different files.
 
 * **Environment**: Node that save all environments.
 

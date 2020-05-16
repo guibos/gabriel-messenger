@@ -98,6 +98,39 @@
 <li><p><strong>Configuration</strong>: Global configuration. This not change between environments.</p>
 <ul>
 <li><p><strong>Environment</strong></p></li>
+<li><p><strong>Logging</strong>: Logging Config</p>
+<ul>
+<li><p><strong>Global</strong>: Affect all external libraries.</p></li>
+<li><p><strong>Application</strong>: Affect only GabrielMessenger modules.</p>
+<ul>
+<li><p><strong>Stream</strong>: Stout and Stderr output logging.</p>
+<ul>
+<li><p><strong>Formatter</strong></p>
+<ul>
+<li><p><strong>fmt</strong></p></li>
+</ul>
+</li>
+<li><p><strong>Level</strong>: Logging level.</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>SMTP</strong>: SMTP output logging:</p>
+<ul>
+<li><p><strong>Level</strong>: Logging level.</p></li>
+<li><p><strong>Sender</strong></p></li>
+<li><p><strong>Recipients</strong></p></li>
+<li><p><strong>Subject</strong></p></li>
+<li><p><strong>Username</strong></p></li>
+<li><p><strong>Password</strong></p></li>
+<li><p><strong>Hostname</strong>: SMTP hostname server</p></li>
+<li><p><strong>Port</strong></p></li>
+<li><p><strong>Use_tls</strong></p></li>
+</ul>
+</li>
+<li><p><strong>File</strong>: No require more configuration. Add key. To save all logs in a file. Each instance of application or a service have different files.</p></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><p><strong>Environment</strong>: Node that save all environments.</p>
