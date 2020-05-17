@@ -61,6 +61,8 @@ class ReceiverMixin(ServiceMixin):
         for sender_module_name, senders_configs in config.items():
             for sender_id, sender_config in senders_configs.items():
                 for channel, channel_config in sender_config.items():
+                    if not channel_config:
+                        channel_config = {'publication_data': {}}
                     queue_context = QueueContext(
                         channel=channel,
                         publication_queue=senders[sender_module_name][sender_id].publication_queue,
