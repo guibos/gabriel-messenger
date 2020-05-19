@@ -39,11 +39,12 @@ class WhatsAppWebService(SenderMixin):
         self._publication_queue = publication_queue
         self._last_channel = None
 
-    async def run(self, data_directory: str, headless: bool):
+    async def run(self, data_directory: str, headless: bool, user_agent: str):
         """Run service"""
         self._logger.info("Instance is working")
         self._browser = await pyppeteer.launch(headless=headless, userDataDir=data_directory, handleSIGINT=False)
         self._page = await self._browser.newPage()
+        await self._page.setUserAgent(user_agent)
         await self._page.goto(self._URL)
         await self._manager()
 
@@ -62,6 +63,7 @@ class WhatsAppWebService(SenderMixin):
         return loop.create_task(whats_app_instance.run(
             headless=kwargs['configuration']['headless'],
             data_directory=data_directory,
+            user_agent=kwargs['configuration']['user_agent']
         ),
                                 name=instance_name)
 
@@ -71,7 +73,7 @@ class WhatsAppWebService(SenderMixin):
             try:
                 return await self._load_publication_web(queue_data_copy)
             except pyppeteer.errors.TimeoutError:
-                a = 1
+                pass
 
     async def _load_publication_web(self, queue_data: QueueData) -> None:
         await self._set_channel(queue_data.channel)
