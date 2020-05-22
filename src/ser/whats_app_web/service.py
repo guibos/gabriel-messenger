@@ -1,5 +1,8 @@
 import asyncio
 import copy
+import datetime
+import os
+import os.path
 import re
 from asyncio import Queue, Task
 from typing import List, Optional
@@ -23,9 +26,10 @@ class WhatsAppWebService(SenderMixin):
     _URL = 'https://web.whatsapp.com/'
     _HANDLE_SIGINT = False
     _MAX_TEXT_LENGTH = 65536
-    _LOAD_PAGE_TIMEOUT_MS = 300000  # 5 minute
+    _LOAD_PAGE_TIMEOUT_MS = 20000  # 20 seconds
     _MAX_RETRIES = 5
     _FORMAT_DATA = FormatData.WHATS_APP
+    _IMAGE_LOG_DIRECTORY = 'image_log_directory'
 
     def __init__(self, *, publication_queue: Queue, state_change_queue: Queue, logger: LoggerInterface,
                  failed_publication_directory: str):
@@ -38,6 +42,9 @@ class WhatsAppWebService(SenderMixin):
         self._page: Optional[Page] = None
         self._publication_queue = publication_queue
         self._last_channel = None
+        self._image_log_directory = os.path.join(
+            os.path.dirname(failed_publication_directory), self._IMAGE_LOG_DIRECTORY)
+        os.mkdir(self._image_log_directory)
 
     async def run(self, data_directory: str, headless: bool, user_agent: str):
         """Run service"""
@@ -73,7 +80,52 @@ class WhatsAppWebService(SenderMixin):
             try:
                 return await self._load_publication_web(queue_data_copy)
             except pyppeteer.errors.TimeoutError:
-                pass
+                fixed = await self._repair_possible_problems()
+            if not fixed:
+                asyncio.create_task(self._log_with_snapshot('Unexpected error:'))
+
+    async def _repair_possible_problems(self):
+        fixed = await self._repair_disconnection_or_session_switch()
+        fixed = fixed or await self._repair_out_of_session()
+        return fixed
+
+    async def _repair_out_of_session(self) -> bool:
+        previous_value = ""
+        if not await self._page.querySelector('.landing-wrapper'):
+            return False
+        while await self._page.querySelector('.landing-wrapper'):
+            reload_qr = await self._page.querySelector('._2JTSk')
+            if reload_qr:
+                await self._logger.debug('Refresh QR.')
+                await reload_qr.click()
+
+            current_value = await self._page.evaluate(
+                '''() => {
+                    var element = document.querySelectorAll("[data-ref]")[0];
+                    var attribute = element.getAttribute("data-ref");
+                    return attribute;
+                }'''
+            )
+            if current_value != previous_value:
+                asyncio.create_task(self._log_with_snapshot('New logging required.'))
+                previous_value = current_value
+
+            await asyncio.sleep(5)
+        return True
+
+    async def _repair_disconnection_or_session_switch(self) -> bool:
+        if not await self._page.querySelector('._1WZqU.PNlAR'):
+            return False
+
+        while retry_selector := await self._page.querySelector('._1WZqU.PNlAR'):
+            await retry_selector.click()
+            await asyncio.sleep(5)
+        return True
+
+    async def _log_with_snapshot(self, message: str):
+        path = os.path.join(self._image_log_directory, f'{datetime.datetime.now().isoformat()}.png')
+        await self._page.screenshot(path=path)
+        await self._logger.error(message, {'files': [FileValueObject(path=path)]}, )
 
     async def _load_publication_web(self, queue_data: QueueData) -> None:
         await self._set_channel(queue_data.channel)
