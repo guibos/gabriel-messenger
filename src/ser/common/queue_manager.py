@@ -24,3 +24,4 @@ class QueueManager:
             updated_publication = Publication.from_dict({**publication.__dict__, **queue_context.publication_data})
             queue_data = QueueData(channel=queue_context.channel, publication=updated_publication)
             await queue_context.publication_queue.put(queue_data)
+

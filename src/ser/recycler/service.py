@@ -1,7 +1,9 @@
 from itertools import cycle
 
+from src.ser.common.enums.format_data import FormatData
 from src.ser.common.receiver_mixin import ReceiverMixin
 from src.ser.common.value_object.receiver_full_config import ReceiverFullConfig
+from src.ser.common.value_object.transacation_data import TransactionData
 from src.ser.recycler.data.recycler_config import RecyclerConfig
 
 
@@ -23,7 +25,10 @@ class Recycler(ReceiverMixin):
         super().__init__(receiver_full_config=receiver_full_config)
 
     async def _load_publications(self) -> None:
-        await self._queue_manager.put(publication=next(self._publication_cycle))
+        publication = next(self._publication_cycle)
+        await self._queue_manager.put(publication=publication)
+        publication_name = await self._get_format_data(data=publication.title, format_data=FormatData.PLAIN)
+        self._logger.info(f"New publication: {publication_name}")
 
     async def _load_cache(self) -> None:
         pass
