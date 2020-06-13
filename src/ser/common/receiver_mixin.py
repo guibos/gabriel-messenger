@@ -3,6 +3,7 @@
 import asyncio
 import hashlib
 import os
+import os.path
 import time
 import traceback
 from abc import abstractmethod
@@ -11,6 +12,7 @@ from typing import Dict, List
 
 import aiofiles
 import aiohttp
+import cairosvg
 import databases
 import sqlalchemy
 from aiohttp import ClientResponse
@@ -114,8 +116,7 @@ class ReceiverMixin(ServiceMixin):
     async def _get_file_value_object(self,
                                      url: str,
                                      public_url: bool,
-                                     pretty_name=None,
-                                     filename_unique=True) -> FileValueObject:
+                                     pretty_name=None) -> FileValueObject:
         if not self._download_files:
             return FileValueObject(
                 public_url=url,
@@ -124,19 +125,11 @@ class ReceiverMixin(ServiceMixin):
 
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as resp:
-                data = await resp.read()
-
-        filename = await self._get_filename_from_url(url)
-
-        if not filename_unique:
-            hash_obj = hashlib.blake2b()
-            hash_obj.update(data)
-            filename = f"{hash_obj.hexdigest()}.{filename.split('.')[1]}"
-
-        path = os.path.join(self._data_directory, filename)
-
-        async with aiofiles.open(path, mode='wb') as file:
-            await file.write(data)
+                if resp.headers['Content-Type'] == 'image/svg+xml':
+                    cairosvg.svg2png(file_obj=resp, )
+                else:
+                    async with aiofiles.open(path, mode='wb') as file:
+                        await file.write(await resp.read())
 
         if public_url:
             return FileValueObject(
@@ -217,8 +210,9 @@ class ReceiverMixin(ServiceMixin):
             await self._queue_manager.put(publication=publication)
             publication_name = await self._get_format_data(data=publication.title, format_data=FormatData.PLAIN)
             self._logger.info(f"New publication: {publication_name}")
-        await self.MODEL_IDENTIFIER.objects.create(id=transaction_data.transaction_id)
-        self._cache.append(transaction_data.transaction_id)
+
+        for record in transaction_data.records:
+            await record.model.objects.create(**record.record_data)
 
     @staticmethod
     def _add_html_tag(string: str, tag: str):

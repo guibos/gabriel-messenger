@@ -22,6 +22,8 @@ class Publication(ABC):
     publication_id: Optional[Union[str, int]] = None
     title: Optional[RichText] = None
     description: Optional[RichText] = None
+    start_at: datetime = None
+    end_at: datetime = None
     url: Optional[str] = None
     timestamp: Optional[datetime] = None
     colour: Optional[int] = None
@@ -39,6 +41,8 @@ class Publication(ABC):
 
         non_rich_item = {
             'URL': self.url,
+            'Inicio': self.start_at,
+            'Finalización': self.end_at,
         }
 
         to_print = [rich_text.to_format(format_data=format_data) for rich_text in rich_items if rich_text]

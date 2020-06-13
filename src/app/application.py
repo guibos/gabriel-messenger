@@ -8,6 +8,7 @@ import appdirs
 from src.inf.configuration.configuration import Configuration
 from src.inf.logger.logger import Logger
 from src.ser.blackfire.service import BlackfireService
+from src.ser.challonge.service import Challonge
 from src.ser.common.enums.state import State
 from src.ser.common.receiver_mixin import ReceiverMixin
 from src.ser.common.sender_mixin import SenderMixin
@@ -29,6 +30,7 @@ class Application:  # pylint: disable=too-few-public-methods
     _SENDERS: Tuple[SenderMixin] = (DiscordService, WhatsAppWebService)
     _RECEIVERS: Tuple[ReceiverMixin] = (
         BlackfireService,
+        Challonge,
         Recycler,
         WSBannerService,
         WSNews,

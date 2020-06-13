@@ -5,12 +5,13 @@ verify_ssl = true
 
 [packages]
 aiofiles = "*"
-aiohttp = "*"
+aiohttp = {extras = ["speedups"],version = "*"}
 aiologger = "*"
 aiosmtplib = "*"
 aiosqlite = "*"
 appdirs = "*"
 beautifulsoup4 = "*"
+cairosvg = "*"
 dataclasses-json = "*"
 discord = {py = "*"}
 html5lib = "*"

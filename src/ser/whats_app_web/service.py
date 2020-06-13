@@ -44,7 +44,7 @@ class WhatsAppWebService(SenderMixin):
         self._last_channel = None
         self._image_log_directory = os.path.join(
             os.path.dirname(failed_publication_directory), self._IMAGE_LOG_DIRECTORY)
-        os.mkdir(self._image_log_directory)
+        os.mkdir(self._image_log_directory, exist_ok=True)
 
     async def run(self, data_directory: str, headless: bool, user_agent: str):
         """Run service"""
