@@ -24,7 +24,7 @@ class BlackfireService(ReceiverMixin):
     MODULE = 'Blackfire'
     MODELS_METADATA, MODEL_IDENTIFIER, MODELS = identifier_factory(orm.Integer(primary_key=True))
 
-    _RECEIVER_CONFIG = BlackfireReceiverConfig
+    _CONFIG = BlackfireReceiverConfig
 
     _DATE_FORMAT = r'[0-9]{2}.[0-9]{2}.[0-9]{4}'
     _PRODUCTS_URL = 'https://www.blackfire.eu/list.php?ppp=60&sort=age&query={}'

@@ -12,6 +12,7 @@ class NotPathOrPublicURL(Exception):
 class FileValueObject:
     """This value object is abstraction how app need to interact with a file. It's possible that is only available on
     file system or a public url."""
+    body_included: bool
     public_url: Optional[str] = None
     path: Optional[str] = None
     pretty_name: Optional[str] = None

@@ -28,7 +28,7 @@ class WSNews(ReceiverMixin):
     _FILENAME_UNIQUE = True
     MODELS_METADATA, MODEL_IDENTIFIER, MODELS = identifier_factory(orm.Text(primary_key=True))
     _BANNED_ALT = ("FB_icon", "IG_icon", "Twitter_icon")
-    _RECEIVER_CONFIG = ReceiverConfig
+    _CONFIG = ReceiverConfig
 
     async def _load_publications(self):
         html = await self._get_site_content(url=self._URL)

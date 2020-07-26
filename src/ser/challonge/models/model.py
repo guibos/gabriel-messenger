@@ -15,6 +15,7 @@ class TournamentModel(orm.Model):  # pylint: disable=too-many-ancestors
     participants: List[int] = orm.JSON()
     matches: List[int] = orm.JSON()
     ended_reported = orm.Boolean()
+    created_at = orm.DateTime()
     last_updated = orm.DateTime()
 
     @property

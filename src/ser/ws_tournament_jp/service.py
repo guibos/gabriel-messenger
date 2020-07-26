@@ -7,7 +7,7 @@ from src.ser.common.itf.receiver_config import ReceiverConfig
 from src.ser.common.models.identifier_factory import identifier_factory
 from src.ser.common.receiver_images_mixin import ReceiverImagesMixin
 from src.ser.common.rich_text import RichText
-from src.ser.common.value_object.receiver_full_config import ReceiverFullConfig
+from src.ser.common.value_object.receiver_common_config import ReceiverCommonConfig
 from src.ser.common.value_object.transacation_data import TransactionData
 
 
@@ -22,13 +22,13 @@ class WSTournamentJp(ReceiverImagesMixin):
     _PUBLIC_URL = True
     _JP_URL = 'https://ws-tcg.com/events/list/battle_{}'
     _TITLE = "Japanese Edition - Monthly Shop Tournament Card"
-    _RECEIVER_CONFIG = ReceiverConfig
+    _CONFIG = ReceiverConfig
 
-    def __init__(self, receiver_full_config: ReceiverFullConfig):
+    def __init__(self, receiver_common_config: ReceiverCommonConfig):
 
         self._title = RichText(data=self._add_html_tag(self._TITLE, tag=self._TITLE_HTML_TAG),
                                format_data=FormatData.HTML)
-        super().__init__(receiver_full_config=receiver_full_config)
+        super().__init__(receiver_common_config=receiver_common_config)
 
     async def _load_publications(self):
         if not self._cache:

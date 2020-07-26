@@ -11,6 +11,7 @@ from src.ser.common.enums.format_data import FormatData
 from src.ser.common.itf.custom_fields import CustomFields
 from src.ser.common.rich_text import RichText
 from src.ser.common.value_object.author import Author
+from src.ser.common.value_object.custom_field import CustomField
 from src.ser.common.value_object.file_value_object import FileValueObject
 
 
@@ -22,15 +23,12 @@ class Publication(ABC):
     publication_id: Optional[Union[str, int]] = None
     title: Optional[RichText] = None
     description: Optional[RichText] = None
-    start_at: datetime = None
-    end_at: datetime = None
+    start_at: Optional[datetime] = None
+    end_at: Optional[datetime] = None
     url: Optional[str] = None
-    timestamp: Optional[datetime] = None
-    colour: Optional[int] = None
-    images: List[FileValueObject] = field(default_factory=list)
     files: List[FileValueObject] = field(default_factory=list)
     author: Optional[Author] = None
-    custom_fields: Optional[CustomFields] = None
+    custom_fields: List[CustomField] = field(default_factory=list)
 
     def to_format(self, *, format_data: FormatData):
         """Output all publication to specific format."""

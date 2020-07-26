@@ -15,7 +15,7 @@ from src.ser.common.itf.publication import Publication
 from src.ser.common.models.identifier_factory import identifier_factory
 from src.ser.common.receiver_mixin import ReceiverMixin
 from src.ser.common.rich_text import RichText
-from src.ser.common.value_object.receiver_full_config import ReceiverFullConfig
+from src.ser.common.value_object.receiver_common_config import ReceiverCommonConfig
 from src.ser.common.value_object.transacation_data import TransactionData
 from src.ser.ws_today_card.data.ws_banner_service_config import WSTodayCardReceiverConfig
 
@@ -29,20 +29,20 @@ class WSTodayCard(ReceiverMixin):
     _EN_DOMAIN = 'https://en.ws-tcg.com'
     MODELS_METADATA, MODEL_IDENTIFIER, MODELS = identifier_factory(orm.Text(primary_key=True))
     _TITLE = "{} Edition - Today's Card"
-    _RECEIVER_CONFIG = WSTodayCardReceiverConfig
+    _CONFIG = WSTodayCardReceiverConfig
 
-    def __init__(self, receiver_full_config: ReceiverFullConfig):
-        self._title = self._TITLE.format(receiver_full_config.receiver_config.language.value)
-        if receiver_full_config.receiver_config.language == Language.ENGLISH:
+    def __init__(self, receiver_common_config: ReceiverCommonConfig):
+        self._title = self._TITLE.format(receiver_common_config.receiver_config.language.value)
+        if receiver_common_config.receiver_config.language == Language.ENGLISH:
             self._url = self._EN_URL
             self._domain = self._EN_DOMAIN
-        elif receiver_full_config.receiver_config.language == Language.JAPANESE:
+        elif receiver_common_config.receiver_config.language == Language.JAPANESE:
             self._url = self._JP_URL
             self._domain = self._JP_DOMAIN
         else:
             raise NotImplementedError
 
-        super().__init__(receiver_full_config)
+        super().__init__(receiver_common_config)
 
     async def _load_publications(self):
         html = await self._get_site_content(url=self._url)

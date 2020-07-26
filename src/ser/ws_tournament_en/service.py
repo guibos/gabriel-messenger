@@ -21,7 +21,7 @@ class WSTournamentEn(ReceiverImagesMixin):
 
     _PUBLIC_URL = True
 
-    _RECEIVER_CONFIG = ReceiverConfig
+    _CONFIG = ReceiverConfig
 
     async def _load_publications(self):
         html = await self._get_site_content(url=self._EN_URL)

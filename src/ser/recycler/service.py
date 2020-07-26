@@ -2,8 +2,7 @@ from itertools import cycle
 
 from src.ser.common.enums.format_data import FormatData
 from src.ser.common.receiver_mixin import ReceiverMixin
-from src.ser.common.value_object.receiver_full_config import ReceiverFullConfig
-from src.ser.common.value_object.transacation_data import TransactionData
+from src.ser.common.value_object.receiver_common_config import ReceiverCommonConfig
 from src.ser.recycler.data.recycler_config import RecyclerConfig
 
 
@@ -18,11 +17,11 @@ class Recycler(ReceiverMixin):
 
     _PUBLIC_URL = True
 
-    _RECEIVER_CONFIG = RecyclerConfig
+    _CONFIG = RecyclerConfig
 
-    def __init__(self, receiver_full_config: ReceiverFullConfig):
-        self._publication_cycle = cycle(receiver_full_config.receiver_config.publications)
-        super().__init__(receiver_full_config=receiver_full_config)
+    def __init__(self, receiver_common_config: ReceiverCommonConfig):
+        self._publication_cycle = cycle(receiver_common_config.receiver_config.publications)
+        super().__init__(receiver_common_config=receiver_common_config)
 
     async def _load_publications(self) -> None:
         publication = next(self._publication_cycle)

@@ -7,7 +7,7 @@ from src.ser.common.enums.language import Language
 from src.ser.common.models.identifier_factory import identifier_factory
 from src.ser.common.receiver_images_mixin import ReceiverImagesMixin
 from src.ser.common.rich_text import RichText
-from src.ser.common.value_object.receiver_full_config import ReceiverFullConfig
+from src.ser.common.value_object.receiver_common_config import ReceiverCommonConfig
 from src.ser.common.value_object.transacation_data import TransactionData
 from src.ser.ws_banner.data.ws_banner_service_config import WSBannerReceiverConfig
 
@@ -18,24 +18,24 @@ class WSBannerService(ReceiverImagesMixin):
     _EN_URL = 'https://en.ws-tcg.com'
     _JP_URL = 'https://ws-tcg.com'
     _TITLE = "{} Edition - Banner"
-    _RECEIVER_CONFIG = WSBannerReceiverConfig
+    _CONFIG = WSBannerReceiverConfig
 
     MODELS_METADATA, MODEL_IDENTIFIER, MODELS = identifier_factory(orm.Text(primary_key=True))
 
     _PUBLIC_URL = True
 
-    def __init__(self, receiver_full_config: ReceiverFullConfig):
-        title = self._TITLE.format(receiver_full_config.receiver_config.language.value)
+    def __init__(self, receiver_common_config: ReceiverCommonConfig):
+        title = self._TITLE.format(receiver_common_config.receiver_config.language.value)
         title = self._add_html_tag(string=title, tag=self._TITLE_HTML_TAG)
         self._title = RichText(data=title, format_data=FormatData.HTML)
-        if receiver_full_config.receiver_config.language == Language.ENGLISH:
+        if receiver_common_config.receiver_config.language == Language.ENGLISH:
             self._url = self._EN_URL
-        elif receiver_full_config.receiver_config.language == Language.JAPANESE:
+        elif receiver_common_config.receiver_config.language == Language.JAPANESE:
             self._url = self._JP_URL
         else:
             raise NotImplementedError
 
-        super().__init__(receiver_full_config=receiver_full_config)
+        super().__init__(receiver_common_config=receiver_common_config)
 
     async def _load_publications(self):
         html = await self._get_site_content(url=self._url)

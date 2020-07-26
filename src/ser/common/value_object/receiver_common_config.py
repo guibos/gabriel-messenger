@@ -9,11 +9,10 @@ from src.ser.common.queue_manager import QueueManager
 
 
 @dataclass
-class ReceiverFullConfig:
+class ReceiverCommonConfig:
     """Config that is passed all Receiver Intances."""
     logger: LoggerInterface
     state_change_queue: Queue
     queue_manager: QueueManager
     data_directory: str
     download_files: bool
-    receiver_config: ReceiverConfig

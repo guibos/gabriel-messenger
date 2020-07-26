@@ -2,5 +2,6 @@ from dataclasses import dataclass
 
 
 @dataclass
-class ChannelConfig:
-    message_lifetime: bool
+class BotActivity:
+    name: str
+    type: str

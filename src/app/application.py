@@ -67,15 +67,16 @@ class Application:  # pylint: disable=too-few-public-methods
         download_files_final = False
 
         for sender_name, sender_config in config.items():
-            repository_instances_value_objects, download_files = self._get_sender_class(
-                sender_name=sender_name).create_tasks_from_configuration(
+            sender_class = self._get_sender_class(
+                sender_name=sender_name)
+            repository_instances_value_objects = sender_class.create_tasks_from_configuration(
                     configuration=sender_config,
                     loop=loop,
                     app_name=self._APP_NAME,
                     environment=self._environment,
                     logger_configuration=logger_configuration,
                 )
-            download_files_final = download_files_final or download_files
+            download_files_final = download_files_final or sender_class.REQUIRED_DOWNLOAD_FILES
             senders[sender_name] = repository_instances_value_objects
 
         return senders, download_files_final
